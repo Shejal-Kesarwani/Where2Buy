@@ -1,12 +1,35 @@
-import { Stack } from "expo-router";
-import WelcomeScreen from "./welcome";
-
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Drawer } from 'expo-router/drawer';
 
 export default function Layout() {
-    return (
-      <Stack initialRouteName="welcome" >
-        <Stack.Screen name="welcome" options={{ headerShown: false }} />
-       
-      </Stack>
-    );
-  }
+  return (
+    
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Drawer>
+        <Drawer.Screen
+          name="index" // This is the name of the page and must match the url from root
+          options={{
+            drawerLabel: 'Home',
+            title: 'overview',
+          }}
+        />
+
+<Drawer.Screen
+          name="aboutus" // This is the name of the page and must match the url from root
+          options={{
+            drawerLabel: 'About Us',
+            title: 'overview',
+          }}
+        />
+
+        <Drawer.Screen
+          name="user/[id]" // This is the name of the page and must match the url from root
+          options={{
+            drawerLabel: 'User',
+            title: 'overview',
+          }}
+        />
+      </Drawer>
+    </GestureHandlerRootView>
+  );
+}
