@@ -63,7 +63,7 @@ const AuthScreen = ({ email, setEmail, password, setPassword, isLogin, setIsLogi
 const AuthenticatedScreen = ({ user, handleAuthentication }) => {
   return (
     <View style={styles.authenticatedContainer}>
-    <Link href="/screens/welcome" asChild>
+    <Link href="/screens" asChild>
       <Pressable style={styles.buttonPress}>
         <Text style={styles.buttonText}>Get Started</Text>
       </Pressable>
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     width: '90%', 
-    marginTop: 290, 
+    marginTop: 210, 
     marginBottom: 320, 
     backgroundColor: '#f0f0f0',
     borderRadius: 10, 
@@ -160,12 +160,13 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    
   },
   authContainer: {
     width: '100%',
     maxWidth: 400,
     backgroundColor: 'rgba(255, 255, 255, 0.9)', 
-    padding: 20, 
+    padding: 50, 
     borderRadius: 10, 
     elevation: 5, 
   },
@@ -183,7 +184,8 @@ const styles = StyleSheet.create({
     marginBottom: 20, 
     padding: 10, 
     borderRadius: 8, 
-    backgroundColor: '#fff', 
+    backgroundColor: '#fff',
+    width:210, 
   },
   buttonContainer: {
     marginBottom: 20, 
@@ -195,7 +197,9 @@ const styles = StyleSheet.create({
     marginTop: 10, 
   },
   bottomContainer: {
-    marginTop: 30, 
+    marginTop: 30,
+    bottom:40, 
+
   },
   emailText: {
     fontSize: 18,

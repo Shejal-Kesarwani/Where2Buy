@@ -10,7 +10,14 @@ export default function Layout() {
           name="index" // This is the name of the page and must match the url from root
           options={{
             drawerLabel: 'Home',
-            title: 'overview',
+          }}
+        />
+
+<Drawer.Screen
+          name="rateus" // This is the name of the page and must match the url from root
+          options={{
+            drawerLabel: 'Rate Us',
+            title: 'Rate Us',
           }}
         />
 
@@ -19,6 +26,12 @@ export default function Layout() {
           options={{
             drawerLabel: 'About Us',
             title: 'overview',
+          }}
+        />
+         <Drawer.Screen
+          name="submit" // This is the name of the page and must match the url from root
+          options={{
+            drawerLabel: 'firestore',
           }}
         />
 
@@ -30,6 +43,7 @@ export default function Layout() {
           }}
         />
       </Drawer>
+  
     </GestureHandlerRootView>
   );
 }
