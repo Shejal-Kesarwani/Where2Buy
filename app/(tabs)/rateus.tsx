@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, Button, View, Pressable } from 'react-native';
-import { db } from './firebaseConfig';
+import { db } from '../(tabs)/firebaseConfig';
 import { collection, addDoc } from 'firebase/firestore';
 import StarRating from 'react-native-star-rating-widget';
 

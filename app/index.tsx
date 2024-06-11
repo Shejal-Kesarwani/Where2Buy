@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, ScrollView, ImageBackground } from 'react-native';
 import { initializeApp } from '@firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from '@firebase/auth';
@@ -63,7 +63,7 @@ const AuthScreen = ({ email, setEmail, password, setPassword, isLogin, setIsLogi
 const AuthenticatedScreen = ({ user, handleAuthentication }) => {
   return (
     <View style={styles.authenticatedContainer}>
-    <Link href="/screens" asChild>
+    <Link href="/(tabs)" asChild>
       <Pressable style={styles.buttonPress}>
         <Text style={styles.buttonText}>Get Started</Text>
       </Pressable>
