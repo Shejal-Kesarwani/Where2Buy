@@ -6,12 +6,12 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 const categories = [
   {
-    name: 'Adidas Neeladri',
+    name: 'Shoe Stores',
     icon: 'store',
     image: 'https://d1csarkz8obe9u.cloudfront.net/posterpreviews/shoes-discount-sale-video-ads-design-template-5b8bd6b5421a0f223fef251a21fb41e9_screen.jpg?ts=1681109963',
   },
   {
-    name: 'Peter England Indiranagar',
+    name: 'Clothing',
     icon: 'store',
     image: 'https://cdn.confect.io/uploads/media/10.webp',
   },
@@ -22,11 +22,6 @@ const categories = [
     image: 'https://i.pinimg.com/736x/80/56/1e/80561e0b40d3b3270ae86e6667d95482.jpg',
   },
 
-  {
-    name:'Grocery',
-    icon:'local-grocery-store',
-    image: 'https://spencers.in/media/wysiwyg/websiteCreative.jpg',
-  } ,
   {
     name:'Grocery',
     icon:'local-grocery-store',
@@ -49,49 +44,59 @@ const ExploreHeader = () => {
   };
 
   return (
+    
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-      <View style={styles.container}>
-        <View style={styles.actionRow}>
-          <Link href={'/(modals)/booking'} asChild>
-            <TouchableOpacity>
-              <View style={styles.searchBtn}>
-                <Ionicons name="search" size={24} />
-                <View>
-                  <Text style={{ fontFamily: 'mon-sb' }}>What's on your mind?</Text>
-                  <Text style={{ fontFamily: 'mon' }}>Search for shoes, clothes</Text>
-                </View>
+    <View style={styles.container}>
+      <View style={styles.actionRow}>
+        <Link href={'/(modals)/booking'}>
+          <TouchableOpacity>
+            <View style={styles.searchBtn}>
+              <Ionicons name="search" size={24} />
+              <View>
+                <Text style={{ fontFamily: 'mon-sb' }}>What's on your mind?</Text>
+                <Text style={{ fontFamily: 'mon' }}>Search for shoes, clothes</Text>
               </View>
-            </TouchableOpacity>
-          </Link>
-        </View>
+            </View>
+          </TouchableOpacity>
+        </Link>
       </View>
-      
       <View style={styles.containerss}>
-  <ScrollView
-    horizontal
-    showsHorizontalScrollIndicator={false}
-    contentContainerStyle={{
-      paddingHorizontal: 10,
-    }}>
-    {categories.map((item, index) => (
-      <TouchableOpacity
-        key={index}
-        style={styles.categoriesBtn}
-        onPress={() => showPopup(item.image)}>
-        <View style={styles.circularIcon}>
-          <MaterialIcons
-            name={item.icon as any}
-            size={24}
-            color='#fff'
-          />
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            alignItems: 'center',
+            paddingHorizontal: 16,
+          }}>
+          {categories.map((item, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.categoriesBtn}
+              onPress={() => showPopup(item.image)}>
+              <View style={styles.circularIcon}>
+                <MaterialIcons
+                  name={item.icon as any}
+                  size={24}
+                  color='#fff'
+                />
+              </View>
+              <Text style={styles.categoryText}>{item.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={closeModal}>
+        <View style={styles.modalView}>
+          <Image source={{ uri: selectedImage }} style={styles.popupImage} />
+          <Button title="Close" onPress={closeModal} />
         </View>
-        <Text style={styles.categoryText}>{item.name}</Text>
-      </TouchableOpacity>
-    ))}
-  </ScrollView>
-</View>
-
-    </SafeAreaView>
+      </Modal>
+    </View>
+  </SafeAreaView>
   );
 };
 
@@ -103,10 +108,12 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 6,
+    marginTop:25,
     shadowOffset: {
       width: 1,
       height: 5,
     },
+
   },
 
   container: {

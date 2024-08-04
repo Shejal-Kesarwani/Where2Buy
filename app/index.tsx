@@ -4,6 +4,7 @@ import { initializeApp } from '@firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from '@firebase/auth';
 import { Link } from 'expo-router';
 import { Pressable } from 'react-native';
+import React = require('react');
 
 
 // Usage example
