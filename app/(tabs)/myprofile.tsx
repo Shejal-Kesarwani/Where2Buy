@@ -24,7 +24,7 @@ export default function App() {
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        setEmail(user.email);
+        setEmail(user.email); //main reference to the user
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         if (userDoc.exists()) {
           const userData = userDoc.data();
@@ -36,7 +36,7 @@ export default function App() {
       }
     });
 
-    return () => unsubscribe();
+    return () => unsubscribe(); //it will stay forever until we delete it
   }, []);
 
   const pickImage = async () => {

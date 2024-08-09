@@ -27,10 +27,10 @@ const Layout = () => {
         }}
       />
       <Tabs.Screen
-        name="aboutus"
+        name="wishlist"
         options={{
-          tabBarLabel: 'About Us',
-          tabBarIcon: ({ size, color }) => <Ionicons name="people" size={size} color={color} />,
+          tabBarLabel: 'Wishlist',
+          tabBarIcon: ({ size, color }) => <Ionicons name="bag" size={size} color={color} />,
         }}
       />
       

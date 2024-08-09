@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, Button, View, Pressable } from 'react-native';
 import { db } from '../(tabs)/firebaseConfig';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc } from 'firebase/firestore';  
 import StarRating from 'react-native-star-rating-widget';
 
 export default function Rate() {
-  const [rating, setRating] = useState(0);
-  const [review, setReview] = useState('');
+  const [rating, setRating] = useState(0);  //star rating
+  const [review, setReview] = useState(''); // text input for review
 
   const handleSubmit = async () => {
     try {

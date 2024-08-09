@@ -28,10 +28,10 @@ const ImageButton = ({ image, text, href }) => {
 };
 
 const App = () => {
-  const [location, setLocation] = useState<Location.LocationObjectCoords | null>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [region, setRegion] = useState(INITIAL_POSITION);
-  const [markers, setMarkers] = useState([]);
+  const [location, setLocation] = useState<Location.LocationObjectCoords | null>(null); //live location
+  const [errorMsg, setErrorMsg] = useState<string | null>(null); //error while fetching the map
+  const [region, setRegion] = useState(INITIAL_POSITION); //current city or town
+  const [markers, setMarkers] = useState([]); //button to get live location
 
   useEffect(() => {
     (async () => {
@@ -95,9 +95,9 @@ const App = () => {
       />
       <MapView
         style={styles.map}
-        initialRegion={region}
-        region={region}
-        provider={PROVIDER_GOOGLE}
+        initialRegion={region} //const as an object passed
+        region={region} //const as an object passed
+        provider={PROVIDER_GOOGLE} //google maps
         showsUserLocation={true}
         showsMyLocationButton={true}
       >
