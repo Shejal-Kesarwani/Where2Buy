@@ -1,41 +1,116 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRoute } from '@react-navigation/native';
+import { db } from '../(tabs)/firebaseConfig'; // Adjust the path as needed
+import { doc, onSnapshot, getDoc,updateDoc, deleteField } from 'firebase/firestore';
 
 const WelcomeScreen = () => {
   const route = useRoute();
-  const [wishlist, setWishlist] = useState(route.params?.wishlist || []);
+  const [wishlist, setWishlist] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (route.params?.wishlist) {
-      setWishlist(route.params.wishlist);
-    }
-  }, [route.params?.wishlist]);
+    const wishlistDoc = doc(db, 'wishlist', 'userWishlist'); // Use your actual document ID here
 
-  const removeFromWishlist = (item) => {
-    setWishlist((prevWishlist) => prevWishlist.filter((wishItem) => wishItem !== item));
+    // Real-time listener
+    const unsubscribe = onSnapshot(wishlistDoc, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const processedData = Object.keys(data).reduce((acc, category) => {
+          acc[category] = data[category];
+          return acc;
+        }, {});
+        setWishlist(processedData);
+        setLoading(false); // Data is now loaded
+      } else {
+        console.log('No such document!');
+        setLoading(false);
+      }
+    }, (error) => {
+      console.error('Error fetching wishlist: ', error);
+      setLoading(false);
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, []);
+
+  const removeFromWishlist = async (category, item) => {
+    try {
+      // Update local state
+      setWishlist((prevWishlist) => {
+        const updatedItems = prevWishlist[category].filter((wishItem) => wishItem !== item);
+        const updatedWishlist = {
+          ...prevWishlist,
+          [category]: updatedItems.length ? updatedItems : undefined,
+        };
+        return updatedWishlist;
+      });
+
+      // Update Firestore
+      const wishlistDoc = doc(db, 'wishlist', 'userWishlist'); // Use your actual document ID here
+      const data = await getDoc(wishlistDoc);
+      const docData = data.data();
+
+      if (docData[category]) {
+        const updatedItems = docData[category].filter((wishItem) => wishItem !== item);
+
+        if (updatedItems.length === 0) {
+          // Remove the category if no items are left
+          await updateDoc(wishlistDoc, {
+            [category]: deleteField(),
+          });
+        } else {
+          // Update the category with the new list
+          await updateDoc(wishlistDoc, {
+            [category]: updatedItems,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error removing item from wishlist: ', error);
+    }
+  };
+
+  const renderCategory = (category, items) => {
+    if (!Array.isArray(items) || items.length === 0) return null;
+
+    return (
+      <View key={category} style={styles.categoryContainer}>
+        <Text style={styles.categoryTitle}>{category}</Text>
+        <View style={styles.gridContainer}>
+          {items.map((item, index) => (
+            <View key={index} style={styles.wishlistItem}>
+              <Text style={styles.itemText}>{item}</Text>
+              <TouchableOpacity
+                style={styles.removeButton}
+                onPress={() => removeFromWishlist(category, item)}
+              >
+                <Text style={styles.removeButtonText}>Remove</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+      </View>
+    );
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Wishlist</Text>
-      <ScrollView contentContainerStyle={styles.gridContainer}>
-        {wishlist.length > 0 ? (
-          wishlist.map((item, index) => (
-            <View key={index} style={styles.wishlistItem}>
-              <Text style={styles.itemText}>{item}</Text>
-              <TouchableOpacity
-                style={styles.removeButton}
-                onPress={() => removeFromWishlist(item)}
-              >
-                <Text style={styles.removeButtonText}>Remove</Text>
-              </TouchableOpacity>
-            </View>
-          ))
-        ) : (
-          <Text style={styles.emptyText}>No items in your wishlist.</Text>
-        )}
-      </ScrollView>
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          {Object.keys(wishlist).length > 0 ? (
+            Object.entries(wishlist).map(([category, items]) =>
+              renderCategory(category, items)
+            )
+          ) : (
+            <Text style={styles.emptyText}>No items in your wishlist.</Text>
+          )}
+        </ScrollView>
+      )}
     </View>
   );
 };
@@ -50,6 +125,18 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+    textAlign: 'center',
+  },
+  scrollContainer: {
+    flexDirection: 'column',
+  },
+  categoryContainer: {
+    marginBottom: 20,
+  },
+  categoryTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
     textAlign: 'center',
   },
   gridContainer: {
