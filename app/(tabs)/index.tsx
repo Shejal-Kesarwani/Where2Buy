@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, SafeAreaView, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { Stack, Link } from 'expo-router';
 import ExploreHeader from '@/components/ExploreHeader';
 
@@ -70,29 +69,12 @@ const App = () => {
     { image: { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQ5B9p8-8aYg6Lu_hHgeLMZXayzoFQSxsW5g&s' }, text: 'Kids Store', href: '/(modals)/kidsstorescreen' },
     { image: { uri: 'https://images.herzindagi.info/image/2022/Nov/street-food-1.jpg' }, text: 'Food', href: '/(modals)/foodscreen' },
     { image: { uri: 'https://zugunu.com/wp-content/uploads/2021/09/In-Circle-Antique-Peacock-Wall-Decor-1.jpg' }, text: 'Home Decor', href: '/(modals)/homedecorscreen' },
-    { image: { uri: 'https://static.toiimg.com/thumb/resizemode-4,width-1200,height-900,msid-108913583/108913583.jpg' }, text: 'Electronics', href: '/(modals)/electronicsscreen' },
+    { image: { uri: 'https://static.toiimg.com/thumb/resizemode-4,width-1200,height-900,msid-108913583/108913583.jpg' }, text: 'Electronics', href: '/(modals)/electronicsscreen', offers:" 30% off sale" },
   ];
 
   return (
     <View style={styles.container}>
-      <GooglePlacesAutocomplete
-        placeholder="Search"
-        onPress={handlePlaceSelect}
-        query={{
-          key: API_KEY,
-          language: 'en',
-        }}
-        fetchDetails
-        styles={{
-          container: {
-            flex: 0,
-            position: 'absolute',
-            width: '100%',
-            zIndex: 1,
-          },
-          listView: { backgroundColor: 'white' },
-        }}
-      />
+  
       <MapView
         style={styles.map}
         initialRegion={region} //const as an object passed
@@ -109,6 +91,7 @@ const App = () => {
       {errorMsg ? <Text>{Alert.alert("Error", errorMsg)}</Text> : null}
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <Text style={styles.text}>Browse By Category</Text>
         <SafeAreaView style={styles.buttonContainer}>
           <Stack.Screen
             options={{

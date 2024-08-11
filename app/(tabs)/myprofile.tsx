@@ -124,7 +124,7 @@ export default function App() {
         style={styles.input}
         placeholder="Email"
         value={email}
-        editable={false}
+        editable={true} 
       />
       <Button title="Update Profile" onPress={handleUpdateProfile} />
       <Button title="Pick an image from camera roll" onPress={pickImage} />

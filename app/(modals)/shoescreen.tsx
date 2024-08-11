@@ -1,43 +1,70 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { db } from '../(tabs)/firebaseConfig'; // Adjust the path as needed
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 const shoeData = [
-  { name: 'Adidas', offers: '30% off sale', category: 'Shoes', image: { uri: 'https://apisap.fabindia.com/medias/10733947-1.jpg?context=bWFzdGVyfGltYWdlc3wxMzk5MTB8aW1hZ2UvanBlZ3xhR001TDJobE1pODRPVGN3TlRBM01UVTNOVE0wTHpFd056TXpPVFEzWHpFdWFuQm58YjUzZWI3NDFhZDkyN2RlMTQ4ZTkxNjQyYzZlYmUzYTg5YWJhYmQyOTQ2MmFmZjk3YTAyNDU5NWRkYzgxYjhhYw' } },
-  { name: 'Puma', offers: '20% off sale', category: 'Shoes', image: { uri: 'https://i.pinimg.com/originals/52/87/f6/5287f602cc11fa34799ce36bff69a9bb.png' } },
-  { name: 'Reebok', offers: '20% off sale', category: 'Shoes', image: { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcScEFlIwcEkvXinHoo2GqNbf9qolN-r7G87XS9RFhB9o-aaT1XOUrDJqj6hCDKPRP8K3G8&usqp=CAU' } },
-  { name: 'Nike', offers: '10% off sale', category: 'Shoes', image: { uri: 'https://assets.ajio.com/medias/sys_master/root/20230707/iOvB/64a8495ca9b42d15c946314f/-473Wx593H-469524320-blue-MODEL.jpg' } },
-  { name: 'Bata', offers: '40% off sale', category: 'Shoes', image: { uri: 'https://www.zudio.com/cdn/shop/products/300903431003_1_576x.jpg?v=1662205959' } },
-  { name: 'Red Tape', offers: '20% off sale', category: 'Shoes', image: { uri: 'https://nb.scene7.com/is/image/NB/mj41506bk_nb_55_i?$pdpflexf2$&wid=440&hei=440' } },
-  { name: 'Skechers', offers: '10% off sale', category: 'Shoes', image: { uri: 'https://i.pinimg.com/originals/3c/2f/05/3c2f05b53ff6be53547f531a4bfbb27e.jpg' } },
-  { name: 'Lotto', offers: 'Buy 2 @ price of 1', category: 'Shoes', image: { uri: 'https://www.adityabirla.com/Upload/Content_Files/pantaloons-4.png' } },
-  { name: 'Lee Cooper', offers: 'Buy 2 tshirts @ price of 1', category: 'Shoes', image: { uri: 'https://assets.esdemarca.com/beta/var/images1000/3136345a.jpg' } },
-  { name: 'Allen Solly', offers: '30% off sale', category: 'Shoes', image: { uri: 'https://wforwoman.com/cdn/shop/files/23AUW19882-220612_1_1dd41053-8e89-4135-b340-143888d9c692.jpg?v=1721363836' } },
-  { name: 'Fila', offers: '15% off sale', category: 'Shoes', image: { uri: 'https://logan.nnnow.com/content/dam/nnnow-project/19-feb-2024/arrow-ss-24/NAV3.jpg' } },
-  { name: 'Provogue', offers: '30% off sale', category: 'Shoes', image: { uri: 'https://pbs.twimg.com/media/CQO0y47UEAASvV5.png' } },
+  { name: 'Puma', offers: '30% off sale', category: 'Shoes', image: { uri: 'https://rukminim2.flixcart.com/image/850/1000/kziqvm80/shoe/v/m/n/9-383052-9-puma-white-white-nimbus-cloud-peacoat-original-imagbg9twhztdwgk.jpeg?q=90&crop=false' } },
+  { name: 'Adidas', offers: '20% off sale', category: 'Shoes', image: { uri: 'https://assets.adidas.com/images/w_600,f_auto,q_auto/a3b3c26ba11f450a9f91ae9b00f43cb9_9366/Galaxy_6_Shoes_Black_GW3847_01_standard.jpg' } },
+  { name: 'Reebok', offers: '20% off sale', category: 'Shoes', image: { uri: 'https://images.jdmagicbox.com/quickquotes/images_main/reebok-gents-shoes-04-03-2022-675-270834566-2yr3vy8w.jpg' } },
+  { name: 'Fila', offers: '10% off sale', category: 'Shoes', image: { uri: 'https://assets.ajio.com/medias/sys_master/root/20230804/ENY7/64cd220aeebac147fca8a1fd/-473Wx593H-469515619-grey-MODEL.jpg' } },
+  { name: 'Lotto', offers: '40% off sale', category: 'Shoes', image: { uri: 'https://assets.ajio.com/medias/sys_master/root/hbf/h75/13676128665630/-473Wx593H-450111728-white-MODEL.jpg' } },
+  { name: 'Campus', offers: '20% off sale', category: 'Shoes', image: { uri: 'https://rukminim2.flixcart.com/image/850/1000/xif0q/shoe/c/g/z/-original-imagg7t3yuwguyw7.jpeg?q=90&crop=false' } },
+  { name: 'Converse', offers: '10% off sale', category: 'Shoes', image: { uri: 'https://4.imimg.com/data4/TO/GQ/ANDROID-36086933/product.jpeg' } },
+  { name: 'Crocs', offers: 'Buy 2 @ price of 1', category: 'Shoes', image: { uri: 'https://www.crocs.in/media/catalog/product/2/0/206715_0dd_alt100_1.jpg?optimize=medium&bg-color=255,255,255&fit=bounds&height=&width=' } },
+  { name: 'Nike', offers: 'Buy 2 tshirts @ price of 1', category: 'Shoes', image: { uri: 'https://assets.ajio.com/medias/sys_master/root/20240220/N1CB/65d4cb1d05ac7d77bb6a5f48/-473Wx593H-469581864-black-MODEL.jpg' } },
+  { name: 'Asics', offers: '30% off sale', category: 'Shoes', image: { uri: 'https://assets.ajio.com/medias/sys_master/root/20230821/O3kz/64e38c67ddf77915195836ad/-1117Wx1400H-469433667-yellow-MODEL.jpg' } },
+  { name: 'Skechers', offers: '15% off sale', category: 'Shoes', image: { uri: 'https://logan.nnnow.com/content/dam/nnnow-project/19-feb-2024/arrow-ss-24/NAV3.jpg' } },
+  { name: 'Bata', offers: '30% off sale', category: 'Shoes', image: { uri: 'https://pbs.twimg.com/media/CQO0y47UEAASvV5.png' } },
 ];
 
 const ShoeScreen = () => {
   const [wishlist, setWishlist] = useState({}); // Store wishlist as an object with categories
   const navigation = useNavigation();
 
-  const toggleWishlist = (shoe) => {
-    setWishlist((prevWishlist) => {
-      const category = shoe.category;
-      const itemsInCategory = prevWishlist[category] || [];
+  useEffect(() => {
+    const fetchWishlist = async () => {
+      try {
+        const wishlistDoc = doc(db, 'wishlist', 'userWishlist'); // Replace 'userWishlist' with your user identifier if needed
+        const docSnap = await getDoc(wishlistDoc);
 
-      if (itemsInCategory.includes(shoe.name)) {
-        return {
-          ...prevWishlist,
-          [category]: itemsInCategory.filter((item) => item !== shoe.name),
-        };
-      } else {
-        return {
-          ...prevWishlist,
-          [category]: [...itemsInCategory, shoe.name],
-        };
+        if (docSnap.exists()) {
+          setWishlist(docSnap.data());
+        }
+      } catch (error) {
+        console.error('Error fetching wishlist: ', error);
       }
-    });
+    };
+
+    fetchWishlist();
+  }, []);
+
+  const toggleWishlist = async (shoe) => {
+    try {
+      setWishlist((prevWishlist) => {
+        const category = shoe.category;
+        const itemsInCategory = prevWishlist[category] || [];
+
+        const updatedWishlist = itemsInCategory.includes(shoe.name)
+          ? {
+              ...prevWishlist,
+              [category]: itemsInCategory.filter((item) => item !== shoe.name),
+            }
+          : {
+              ...prevWishlist,
+              [category]: [...itemsInCategory, shoe.name],
+            };
+
+        // Update Firestore
+        const wishlistDoc = doc(db, 'wishlist', 'userWishlist'); // Replace 'userWishlist' with your user identifier if needed
+        setDoc(wishlistDoc, updatedWishlist);
+
+        return updatedWishlist;
+      });
+    } catch (error) {
+      console.error('Error updating wishlist: ', error);
+    }
   };
 
   const openMap = (shoe) => {
@@ -75,7 +102,7 @@ const ShoeScreen = () => {
       </ScrollView>
       <TouchableOpacity
         style={styles.wishlistButton}
-        onPress={() => navigation.navigate('wishlist', { wishlist })}
+        onPress={() => navigation.navigate('wishlist')}
       >
         <Text style={styles.wishlistButtonText}>Go to Wishlist</Text>
       </TouchableOpacity>

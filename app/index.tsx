@@ -58,7 +58,7 @@ const AuthScreen = ({ email, setEmail, password, setPassword, isLogin, setIsLogi
   );
 }
 
-
+//className="auth-container" id="new"
 
 //authenticated screen after the login
 const AuthenticatedScreen = ({ user, handleAuthentication }) => {
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     marginBottom: 320, 
     backgroundColor: '#f0f0f0',
     borderRadius: 10, 
-  },
+  }, 
   background: {
     flex: 1,
     justifyContent: 'center',
