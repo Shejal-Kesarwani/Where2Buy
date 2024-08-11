@@ -5,9 +5,9 @@ import { db } from '../(tabs)/firebaseConfig'; // Adjust the path as needed
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 const shoeData = [
-  { name: 'Vegetables', offers: '30% off sale', category: 'Grocery', image: { uri: 'https://apisap.fabindia.com/medias/10733947-1.jpg?context=bWFzdGVyfGltYWdlc3wxMzk5MTB8aW1hZ2UvanBlZ3xhR001TDJobE1pODRPVGN3TlRBM01UVTNOVE0wTHpFd056TXpPVFEzWHpFdWFuQm58YjUzZWI3NDFhZDkyN2RlMTQ4ZTkxNjQyYzZlYmUzYTg5YWJhYmQyOTQ2MmFmZjk3YTAyNDU5NWRkYzgxYjhhYw' } },
-  { name: 'Fruits', offers: '20% off sale', category: 'Grocery', image: { uri: 'https://i.pinimg.com/originals/52/87/f6/5287f602cc11fa34799ce36bff69a9bb.png' } },
-  { name: 'Bread', offers: '20% off sale', category: 'Grocery', image: { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcScEFlIwcEkvXinHoo2GqNbf9qolN-r7G87XS9RFhB9o-aaT1XOUrDJqj6hCDKPRP8K3G8&usqp=CAU' } },
+  { name: 'Vegetables', offers: '30% off sale', category: 'Grocery', image: { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4vbJ9J2erGuOudV0SOEXJbQKskLEP--WhsQ&s' } },
+  { name: 'Fruits', offers: '20% off sale', category: 'Grocery', image: { uri: 'https://akm-img-a-in.tosshub.com/indiatoday/images/story/202312/6-fruits-to-eat-on-empty-stomach-053937965-1x1.jpg?VersionId=xIXuT3WPQa4V8dHjQllmefHlDH1mfNDw' } },
+  { name: 'Bread', offers: '20% off sale', category: 'Grocery', image: { uri: 'https://tastesbetterfromscratch.com/wp-content/uploads/2020/03/Bread-Recipe-5-2.jpg' } },
   { name: 'Beverages', offers: '10% off sale', category: 'Grocery', image: { uri: 'https://assets.ajio.com/medias/sys_master/root/20230707/iOvB/64a8495ca9b42d15c946314f/-473Wx593H-469524320-blue-MODEL.jpg' } },
   { name: 'Milk', offers: '40% off sale', category: 'Grocery', image: { uri: 'https://www.zudio.com/cdn/shop/products/300903431003_1_576x.jpg?v=1662205959' } },
   { name: 'Cheese', offers: '20% off sale', category: 'Grocery', image: { uri: 'https://nb.scene7.com/is/image/NB/mj41506bk_nb_55_i?$pdpflexf2$&wid=440&hei=440' } },

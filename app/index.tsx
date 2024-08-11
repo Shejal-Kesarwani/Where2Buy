@@ -1,15 +1,9 @@
-import  { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ScrollView, ImageBackground } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, TextInput, Button, StyleSheet, ScrollView, ImageBackground, Pressable } from 'react-native';
 import { initializeApp } from '@firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from '@firebase/auth';
 import { Link } from 'expo-router';
-import { Pressable } from 'react-native';
 import React = require('react');
-
-
-// Usage example
-
-
 
 const firebaseConfig = {
   apiKey: "AIzaSyCBRDGX2Hv1JSasV2yB54JpebnABA1bO_U",
@@ -20,18 +14,17 @@ const firebaseConfig = {
   appId: "1:553087313843:web:023c73d3cf89a15854cdc6"
 };
 
+// Update the image reference
+const image = require('../assets/images/bg_image.png');
 
-const image = { uri: "https://i.pinimg.com/564x/48/f9/18/48f918021274a4fa8275918d76139dd4.jpg" };
 const app = initializeApp(firebaseConfig);
 
 const AuthScreen = ({ email, setEmail, password, setPassword, isLogin, setIsLogin, handleAuthentication }) => {
   return (
-    
     <View style={styles.authContainer}>
-      
-       <Text style={styles.title}>{isLogin ? 'Sign In' : 'Sign Up'}</Text>
+      <Text style={styles.title}>{isLogin ? 'Sign In' : 'Sign Up'}</Text>
 
-       <TextInput
+      <TextInput
         style={styles.input}
         value={email}
         onChangeText={setEmail}
@@ -56,30 +49,28 @@ const AuthScreen = ({ email, setEmail, password, setPassword, isLogin, setIsLogi
       </View>
     </View>
   );
-}
+};
 
-//className="auth-container" id="new"
-
-//authenticated screen after the login
 const AuthenticatedScreen = ({ user, handleAuthentication }) => {
   return (
     <View style={styles.authenticatedContainer}>
-    <Link href="/(tabs)" asChild>
-      <Pressable style={styles.buttonPress}>
-        <Text style={styles.buttonText}>Get Started</Text>
+      <Link href="/(tabs)" asChild>
+        <Pressable style={styles.buttonPress}>
+          <Text style={styles.buttonText}>Get Started</Text>
+        </Pressable>
+      </Link>
+      <Text style={styles.emailText}>Logged in as {user.email}</Text>
+      <Pressable onPress={handleAuthentication} style={[styles.buttonPress, styles.logoutButton]}>
+        <Text style={styles.buttonText}>Logout</Text>
       </Pressable>
-    </Link>
-    <Text style={styles.emailText}>Logged in as {user.email}</Text>
-    <Pressable onPress={handleAuthentication} style={[styles.button, styles.logoutButton]}>
-      <Text style={styles.buttonText}>Logout</Text>
-    </Pressable>
-  </View>
+    </View>
   );
 };
+
 export default App = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [user, setUser] = useState(null); // Track user authentication state
+  const [user, setUser] = useState(null);
   const [isLogin, setIsLogin] = useState(true);
 
   const auth = getAuth(app);
@@ -91,21 +82,16 @@ export default App = () => {
     return () => unsubscribe();
   }, [auth]);
 
-  
   const handleAuthentication = async () => {
     try {
       if (user) {
-        // If user is already authenticated, log out
-        console.log('User logged out successfully!');
         await signOut(auth);
+        console.log('User logged out successfully!');
       } else {
-        // Sign in or sign up
         if (isLogin) {
-          // Sign in
           await signInWithEmailAndPassword(auth, email, password);
           console.log('User signed in successfully!');
         } else {
-          // Sign up
           await createUserWithEmailAndPassword(auth, email, password);
           console.log('User created successfully!');
         }
@@ -116,125 +102,120 @@ export default App = () => {
   };
 
   return (
-    <ImageBackground source={image} style={styles.background}>
-    <ScrollView contentContainerStyle={styles.container}>
-      
-      {user ? (
-        // Show user's email if user is authenticated
-        <AuthenticatedScreen user={user} handleAuthentication={handleAuthentication} />
-      ) : (
-        // Show sign-in or sign-up form if user is not authenticated
-        <AuthScreen
-          email={email}
-          setEmail={setEmail}
-          password={password}
-          setPassword={setPassword}
-          isLogin={isLogin}
-          setIsLogin={setIsLogin}
-          handleAuthentication={handleAuthentication}
-        />
-      )}
-     
-    </ScrollView>
+    <ImageBackground source={image} style={styles.background} resizeMode="cover">
+      <ScrollView contentContainerStyle={styles.container}>
+        {user ? (
+          <AuthenticatedScreen user={user} handleAuthentication={handleAuthentication} />
+        ) : (
+          <AuthScreen
+            email={email}
+            setEmail={setEmail}
+            password={password}
+            setPassword={setPassword}
+            isLogin={isLogin}
+            setIsLogin={setIsLogin}
+            handleAuthentication={handleAuthentication}
+          />
+        )}
+      </ScrollView>
     </ImageBackground>
   );
-}
+};
+
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '90%', 
-    marginTop: 210, 
-    marginBottom: 320, 
-    backgroundColor: '#f0f0f0',
-    borderRadius: 10, 
-  }, 
   background: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
     height: '100%',
+    resizeMode: 'cover',
   },
-  scrollContainer: {
+  container: {
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    
+    width: '100%',
+    paddingHorizontal: 20,
   },
   authContainer: {
     width: '100%',
     maxWidth: 400,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)', 
-    padding: 50, 
-    borderRadius: 10, 
-    elevation: 5, 
-  },
-  title: {
-    fontSize: 28, 
-    marginBottom: 20, 
-    textAlign: 'center',
-    fontWeight: 'bold',
-    color: '#333', 
-  },
-  input: {
-    height: 45, 
-    borderColor: '#ccc', 
-    borderWidth: 1,
-    marginBottom: 20, 
-    padding: 10, 
-    borderRadius: 8, 
-    backgroundColor: '#fff',
-    width:210, 
-  },
-  buttonContainer: {
-    marginBottom: 20, 
-    width: '100%',
-  },
-  toggleText: {
-    color: '#3498db',
-    textAlign: 'center',
-    marginTop: 10, 
-  },
-  bottomContainer: {
-    marginTop: 30,
-    bottom:40, 
-
-  },
-  emailText: {
-    fontSize: 18,
-    textAlign: 'center',
-    marginBottom: 20,
-    color: '#555',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  buttonPress: {
-    backgroundColor: '#3498db',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    marginVertical: 10,
-  },
-  logoutButton: {
-    backgroundColor: '#e74c3c',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    marginVertical: 10,
-  },
-  authenticatedContainer: {
-    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    padding: 30,
+    borderRadius: 15,
+    elevation: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    width: '90%',
+  },
+  title: {
+    fontSize: 30,
+    marginBottom: 20,
+    textAlign: 'center',
+    fontWeight: 'bold',
+    color: '#1F4E79',
+  },
+  input: {
+    height: 50,
+    width: 240,
+    borderColor: '#1F4E79',
+    borderWidth: 2,
+    marginBottom: 15,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+    backgroundColor: '#F5F7FA',
+    fontSize: 16,
+    color: '#333',
+    shadowColor: '#111',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 2,
+    alignSelf: 'stretch',
+  },
+  buttonContainer: {
+    marginTop: 20,
+    width: '100%',
+    backgroundColor: '#1E90FF',
+    borderRadius: 10,
+  },
+  toggleText: {
+    color: '#373A40',
+    textAlign: 'center',
+    marginTop: 20,
+    fontWeight: '500',
+  },
+  bottomContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  authenticatedContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
     maxWidth: 400,
     padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 15,
+    maxHeight: 300, 
+  },
+  buttonPress: {
+    backgroundColor: '#478CCF',
+    borderRadius: 20,
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    marginVertical: 10,
+    width: '100%',
+    maxWidth: 250,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  logoutButton: {
+    backgroundColor: '#B43F3F',
   },
 });

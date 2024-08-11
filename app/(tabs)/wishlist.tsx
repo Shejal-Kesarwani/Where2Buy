@@ -1,78 +1,88 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { db } from '../(tabs)/firebaseConfig'; // Adjust the path as needed
-import { doc, onSnapshot, getDoc,updateDoc, deleteField } from 'firebase/firestore';
+import { db } from '../(tabs)/firebaseConfig'; 
+import { doc, onSnapshot, updateDoc, deleteField } from 'firebase/firestore';
+import { auth } from '../(tabs)/firebaseConfig'; 
+import { onAuthStateChanged } from 'firebase/auth';
 
 const WelcomeScreen = () => {
   const route = useRoute();
   const [wishlist, setWishlist] = useState({});
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
-    const wishlistDoc = doc(db, 'wishlist', 'userWishlist'); // Use your actual document ID here
-
-    // Real-time listener
-    const unsubscribe = onSnapshot(wishlistDoc, (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const processedData = Object.keys(data).reduce((acc, category) => {
-          acc[category] = data[category];
-          return acc;
-        }, {});
-        setWishlist(processedData);
-        setLoading(false); // Data is now loaded
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserId(user.uid);
       } else {
-        console.log('No such document!');
+        setUserId(null);
+        setWishlist({});
         setLoading(false);
       }
+    });
+
+    return () => unsubscribeAuth();
+  }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const wishlistDoc = doc(db, 'userWishlists', userId); 
+
+    const unsubscribe = onSnapshot(wishlistDoc, (docSnap) => {
+      if (docSnap.exists()) {
+        setWishlist(docSnap.data() || {});
+      } else {
+        setWishlist({});
+      }
+      setLoading(false);
     }, (error) => {
-      console.error('Error fetching wishlist: ', error);
+      console.error('Error fetching wishlist:', error);
       setLoading(false);
     });
 
-    // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, []);
+  }, [userId]);
 
-  const removeFromWishlist = async (category, item) => {
+  const removeFromWishlist = useCallback(async (category, item) => {
+    if (!userId) return;
+
     try {
-      // Update local state
-      setWishlist((prevWishlist) => {
-        const updatedItems = prevWishlist[category].filter((wishItem) => wishItem !== item);
-        const updatedWishlist = {
-          ...prevWishlist,
-          [category]: updatedItems.length ? updatedItems : undefined,
-        };
-        return updatedWishlist;
-      });
-
-      // Update Firestore
-      const wishlistDoc = doc(db, 'wishlist', 'userWishlist'); // Use your actual document ID here
+      const wishlistDoc = doc(db, 'userWishlists', userId);
       const data = await getDoc(wishlistDoc);
       const docData = data.data();
 
-      if (docData[category]) {
+      if (docData && docData[category]) {
         const updatedItems = docData[category].filter((wishItem) => wishItem !== item);
 
         if (updatedItems.length === 0) {
-          // Remove the category if no items are left
           await updateDoc(wishlistDoc, {
             [category]: deleteField(),
           });
         } else {
-          // Update the category with the new list
           await updateDoc(wishlistDoc, {
             [category]: updatedItems,
           });
         }
+
+        setWishlist((prevWishlist) => {
+          const updatedWishlist = { ...prevWishlist };
+          if (updatedItems.length === 0) {
+            delete updatedWishlist[category];
+          } else {
+            updatedWishlist[category] = updatedItems;
+          }
+          return updatedWishlist;
+        });
       }
     } catch (error) {
-      console.error('Error removing item from wishlist: ', error);
+      console.error('Error removing item from wishlist:', error);
     }
-  };
+  }, [userId]);
 
-  const renderCategory = (category, items) => {
+  const renderCategory = useMemo(() => (category, items) => {
     if (!Array.isArray(items) || items.length === 0) return null;
 
     return (
@@ -93,24 +103,26 @@ const WelcomeScreen = () => {
         </View>
       </View>
     );
-  };
+  }, [removeFromWishlist]);
+
+  const wishlistContent = useMemo(() => {
+    if (loading) {
+      return <ActivityIndicator size="large" color="#0000ff" />;
+    } else if (Object.keys(wishlist).length > 0) {
+      return Object.entries(wishlist).map(([category, items]) =>
+        renderCategory(category, items)
+      );
+    } else {
+      return <Text style={styles.emptyText}>No items in your wishlist.</Text>;
+    }
+  }, [loading, wishlist, renderCategory]);
 
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Wishlist</Text>
-      {loading ? (
-        <ActivityIndicator size="large" color="#0000ff" />
-      ) : (
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
-          {Object.keys(wishlist).length > 0 ? (
-            Object.entries(wishlist).map(([category, items]) =>
-              renderCategory(category, items)
-            )
-          ) : (
-            <Text style={styles.emptyText}>No items in your wishlist.</Text>
-          )}
-        </ScrollView>
-      )}
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {wishlistContent}
+      </ScrollView>
     </View>
   );
 };
@@ -118,68 +130,72 @@ const WelcomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#E7F0DC',
     padding: 20,
   },
   text: {
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: 'bold',
-    marginBottom: 20,
+    color: '#2C3E50',  
     textAlign: 'center',
+    marginBottom: 20,
+    letterSpacing: 1.5,  
   },
   scrollContainer: {
-    flexDirection: 'column',
+    paddingBottom: 20,
   },
   categoryContainer: {
-    marginBottom: 20,
+    marginBottom: 25,
   },
   categoryTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    fontSize: 24,
+    fontWeight: '600',
+    fontFamily: 'Roboto',
+    color: '#2C3E50',  
+    marginBottom: 15,
+    borderBottomColor: '#2C3E50',
+    paddingBottom: 5,
     textAlign: 'center',
   },
   gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
   },
   wishlistItem: {
-    width: '40%',
-    aspectRatio: 1,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    margin: 10,
+    backgroundColor: '#FFFFFF', 
+    padding: 15,
+    borderRadius: 15,  
+    width: '48%',
+    marginBottom: 15,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
-    elevation: 5,
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 3,
+    shadowOffset: { width: 0, height: 2 },  
   },
   itemText: {
-    color: '#333',
     fontSize: 16,
-    textAlign: 'center',
+    color: '#2C3E50',  
+    marginBottom: 10,
   },
   removeButton: {
+    backgroundColor: '#6B8A7A',  
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
     marginTop: 10,
-    backgroundColor: '#ff4d4d',
-    paddingVertical: 5,
-    paddingHorizontal: 15,
-    borderRadius: 5,
   },
   removeButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    textAlign: 'center',
+    color: '#FFFFFF',  
+    fontWeight: '600',
+    fontSize: 16,
   },
   emptyText: {
-    fontSize: 18,
-    color: '#999',
+    fontSize: 20,
+    color: '#7F8C8D',  
     textAlign: 'center',
-    marginTop: 20,
+    marginTop: 50,
   },
 });
 

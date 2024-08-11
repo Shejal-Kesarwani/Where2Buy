@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Button, TextInput, Image, Alert } from 'react-native';
+import { StyleSheet, Text, View, Image, Alert, TextInput, TouchableOpacity } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db, storage } from './firebaseConfig';
-import { HelloWave } from '@/components/HelloWave';
 
 export default function App() {
   const [image, setImage] = useState(null);
@@ -24,7 +23,7 @@ export default function App() {
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        setEmail(user.email); //main reference to the user
+        setEmail(user.email); // Main reference to the user
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         if (userDoc.exists()) {
           const userData = userDoc.data();
@@ -36,7 +35,7 @@ export default function App() {
       }
     });
 
-    return () => unsubscribe(); //it will stay forever until we delete it
+    return () => unsubscribe(); // Cleanup on unmount
   }, []);
 
   const pickImage = async () => {
@@ -99,35 +98,49 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <HelloWave/>
-      <Text style={styles.header}>Edit Profile</Text>
-      {image && <Image source={{ uri: image }} style={styles.image} />}
-      <TextInput
-        style={styles.input}
-        placeholder="Name"
-        value={name}
-        onChangeText={setName}
+      <Image 
+        source={{ uri: 'https://ibb.co/n6Tydcv' }} 
+        style={styles.headerImage} 
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Address"
-        value={address}
-        onChangeText={setAddress}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Phone Number"
-        value={phone}
-        onChangeText={setPhone}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        editable={true} 
-      />
-      <Button title="Update Profile" onPress={handleUpdateProfile} />
-      <Button title="Pick an image from camera roll" onPress={pickImage} />
+      <View style={styles.content}>
+        <Text style={styles.header}>My Profile</Text>
+        <TouchableOpacity onPress={pickImage}>
+          {image ? (
+            <Image source={{ uri: image }} style={styles.image} />
+          ) : (
+            <View style={styles.imagePlaceholder}>
+              <Text style={styles.placeholderText}>Tap to set profile picture</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+        <TextInput
+          style={styles.input}
+          placeholder="Name"
+          value={name}
+          onChangeText={setName}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Address"
+          value={address}
+          onChangeText={setAddress}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Phone Number"
+          value={phone}
+          onChangeText={setPhone}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          value={email}
+          editable={false}
+        />
+        <TouchableOpacity style={styles.button} onPress={handleUpdateProfile}>
+          <Text style={styles.buttonText}>Update Profile</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -135,10 +148,19 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#EAF0F7',
+  },
+  headerImage: {
+    width: '100%',
+    height: 100,
+    resizeMode: 'contain',
+  },
+  content: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
-    backgroundColor: '#f5f5f5',
+    marginBottom: 100,
   },
   header: {
     fontSize: 24,
@@ -158,11 +180,36 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 100,
+    borderWidth: 2,
+    borderColor: '#B0C4DE',
     marginBottom: 20,
+  },
+  imagePlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 100,
+    borderWidth: 2,
+    borderColor: '#B0C4DE',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#D3D3D3',
+    marginBottom: 20,
+  },
+  placeholderText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    textAlign: 'center',
   },
   button: {
     marginTop: 10,
-    backgroundColor: '#007bff',
-    color: '#fff',
+    backgroundColor: '#1F4E79',
+    padding: 10,
+    borderRadius: 25,
+    alignItems: 'center',
+    width: '50%',
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
   },
 });

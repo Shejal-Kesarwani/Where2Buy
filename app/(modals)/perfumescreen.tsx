@@ -1,46 +1,62 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { db } from '../(tabs)/firebaseConfig'; // Adjust the path as needed
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { db, auth } from '../(tabs)/firebaseConfig'; 
+import { doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
 
 const shoeData = [
-  { name: 'Wild Stone', offers: '30% off sale', category: 'Perfumes', image: { uri: 'https://apisap.fabindia.com/medias/10733947-1.jpg?context=bWFzdGVyfGltYWdlc3wxMzk5MTB8aW1hZ2UvanBlZ3xhR001TDJobE1pODRPVGN3TlRBM01UVTNOVE0wTHpFd056TXpPVFEzWHpFdWFuQm58YjUzZWI3NDFhZDkyN2RlMTQ4ZTkxNjQyYzZlYmUzYTg5YWJhYmQyOTQ2MmFmZjk3YTAyNDU5NWRkYzgxYjhhYw' } },
-  { name: 'Axe', offers: '20% off sale', category: 'Perfumes', image: { uri: 'https://i.pinimg.com/originals/52/87/f6/5287f602cc11fa34799ce36bff69a9bb.png' } },
-  { name: 'Park Avenue', offers: '20% off sale', category: 'Perfumes', image: { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcScEFlIwcEkvXinHoo2GqNbf9qolN-r7G87XS9RFhB9o-aaT1XOUrDJqj6hCDKPRP8K3G8&usqp=CAU' } },
-  { name: 'Chanel Perfumes', offers: '10% off sale', category: 'Perfumes', image: { uri: 'https://assets.ajio.com/medias/sys_master/root/20230707/iOvB/64a8495ca9b42d15c946314f/-473Wx593H-469524320-blue-MODEL.jpg' } },
-  { name: 'Skinn By Titan', offers: '40% off sale', category: 'Perfumes', image: { uri: 'https://www.zudio.com/cdn/shop/products/300903431003_1_576x.jpg?v=1662205959' } },
-  { name: 'Zudio Perfumes', offers: '20% off sale', category: 'Perfumes', image: { uri: 'https://nb.scene7.com/is/image/NB/mj41506bk_nb_55_i?$pdpflexf2$&wid=440&hei=440' } },
-  { name: 'Dior', offers: '10% off sale', category: 'Perfumes', image: { uri: 'https://i.pinimg.com/originals/3c/2f/05/3c2f05b53ff6be53547f531a4bfbb27e.jpg' } },
-  { name: 'Ustraa', offers: 'Buy 2 @ price of 1', category: 'Perfumes', image: { uri: 'https://www.adityabirla.com/Upload/Content_Files/pantaloons-4.png' } },
-  { name: 'The Man Company', offers: 'Buy 2 tshirts @ price of 1', category: 'Perfumes', image: { uri: 'https://assets.esdemarca.com/beta/var/images1000/3136345a.jpg' } },
-  { name: 'Beardo', offers: '30% off sale', category: 'Perfumes', image: { uri: 'https://wforwoman.com/cdn/shop/files/23AUW19882-220612_1_1dd41053-8e89-4135-b340-143888d9c692.jpg?v=1721363836' } },
-  { name: 'Denver Perfumes', offers: '15% off sale', category: 'Perfumes', image: { uri: 'https://logan.nnnow.com/content/dam/nnnow-project/19-feb-2024/arrow-ss-24/NAV3.jpg' } },
-  { name: 'Villian Perfumes', offers: '30% off sale', category: 'Perfumes', image: { uri: 'https://pbs.twimg.com/media/CQO0y47UEAASvV5.png' } },
+  { name: 'Wild Stone', offers: '30% off sale', category: 'Perfumes', image: { uri: 'https://m.media-amazon.com/images/I/51M73SOIdhL._AC_UF1000,1000_QL80_.jpg' } },
+  { name: 'Axe', offers: '20% off sale', category: 'Perfumes', image: { uri: 'https://assets.unileversolutions.com/v1/36023848.png' } },
+  { name: 'Park Avenue', offers: '20% off sale', category: 'Perfumes', image: { uri: 'https://assets.myntassets.com/w_412,q_60,dpr_2,fl_progressive/assets/images/16687124/2024/4/1/c177d021-6e5f-41c6-80cf-855de8e64ec01711967360835-Park-Avenue-Harmony-Eau-De-Parfum---100-ml-7351711967360364-1.jpg' } },
+  { name: 'Chanel Perfumes', offers: '10% off sale', category: 'Perfumes', image: { uri: 'https://5.imimg.com/data5/SELLER/Default/2021/6/WE/KT/TM/126432253/5fc74f3e-3b15-4f06-9e79-a8270af18656.jpg' } },
+  { name: 'Skinn By Titan', offers: '40% off sale', category: 'Perfumes', image: { uri: 'https://m.media-amazon.com/images/I/61yPezKr0zL._AC_UF1000,1000_QL80_.jpg' } },
+  { name: 'Zudio Perfumes', offers: '20% off sale', category: 'Perfumes', image: { uri: 'https://www.zudio.com/cdn/shop/products/300847707001_1_576x.jpg?v=1662205084' } },
+  { name: 'Dior', offers: '10% off sale', category: 'Perfumes', image: { uri: 'https://rukminim2.flixcart.com/image/750/900/kzd147k0/perfume/2/v/b/100-men-perfume-spray-edp-100ml-eau-de-parfum-christian-dior-men-original-imagbe9twhts5qcb.jpeg?q=20&crop=false' } },
+  { name: 'Ustraa', offers: 'Buy 2 @ price of 1', category: 'Perfumes', image: { uri: 'https://rubnic.com/cdn/shop/files/ustraa-cologne-scuba-100-ml-perfume-for-menblue-deodorant-body-sprayblue-roll-on-50ml-329.webp?v=1692813527' } },
+  { name: 'The Man Company', offers: 'Buy 2 tshirts @ price of 1', category: 'Perfumes', image: { uri: 'https://assets.myntassets.com/w_412,q_auto:best,dpr_2,fl_progressive/assets/images/14987782/2024/1/2/bb5a5e3b-fef9-480b-8705-ea1471431f0f1704197019220-THE-MAN-COMPANY-Intense-EDP-for-Men---100-ml-441170419701899-1.jpg' } },
+  { name: 'Beardo', offers: '30% off sale', category: 'Perfumes', image: { uri: 'https://beardo.in/cdn/shop/files/ThugLifePerfumeCombo512x512.jpg?v=1694425283' } },
+  { name: 'Denver Perfumes', offers: '15% off sale', category: 'Perfumes', image: { uri: 'https://denverformen.com/cdn/shop/products/Artboard5_1x1copy2_87c851d0-bd79-44e2-b016-c880e84181c1_800x.jpg?v=1698482044' } },
+  { name: 'Villian Perfumes', offers: '30% off sale', category: 'Perfumes', image: { uri: 'https://cdn.shopify.com/s/files/1/0616/7494/6800/files/Hydra_flatlay_1_480x480.jpg?v=1645709511' } },
+
 ];
 
 const ShoeScreen = () => {
-  const [wishlist, setWishlist] = useState({}); // Store wishlist as an object with categories
+  const [wishlist, setWishlist] = useState({});
+  const [userId, setUserId] = useState(null);
   const navigation = useNavigation();
 
   useEffect(() => {
-    const fetchWishlist = async () => {
-      try {
-        const wishlistDoc = doc(db, 'wishlist', 'userWishlist'); // Replace 'userWishlist' with your user identifier if needed
-        const docSnap = await getDoc(wishlistDoc);
-
-        if (docSnap.exists()) {
-          setWishlist(docSnap.data());
-        }
-      } catch (error) {
-        console.error('Error fetching wishlist: ', error);
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserId(user.uid);
+      } else {
+        setUserId(null);
       }
-    };
+    });
 
-    fetchWishlist();
+    return () => unsubscribeAuth();
   }, []);
 
+  useEffect(() => {
+    if (!userId) return;
+
+    const wishlistDoc = doc(db, 'userWishlists', userId); 
+
+    const unsubscribe = onSnapshot(wishlistDoc, (docSnap) => {
+      if (docSnap.exists()) {
+        setWishlist(docSnap.data() || {});
+      } else {
+        setWishlist({});
+      }
+    });
+
+    return () => unsubscribe();
+  }, [userId]);
+
   const toggleWishlist = async (shoe) => {
+    if (!userId) return;
+
     try {
       setWishlist((prevWishlist) => {
         const category = shoe.category;
@@ -56,8 +72,8 @@ const ShoeScreen = () => {
               [category]: [...itemsInCategory, shoe.name],
             };
 
-        // Update Firestore
-        const wishlistDoc = doc(db, 'wishlist', 'userWishlist'); // Replace 'userWishlist' with your user identifier if needed
+      
+        const wishlistDoc = doc(db, 'userWishlists', userId); 
         setDoc(wishlistDoc, updatedWishlist);
 
         return updatedWishlist;
@@ -74,6 +90,7 @@ const ShoeScreen = () => {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.Head}>Perfumes</Text>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {shoeData.map((shoe, index) => (
           <View key={index} style={styles.buttonContainer}>
@@ -113,8 +130,17 @@ const ShoeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#B0C4DE',
     marginTop: 40,
+  },
+  Head:{
+    padding: 15,
+    backgroundColor: '#1F4E79',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#fff',
+    fontSize: 22,
+    fontWeight:'bold'
   },
   scrollContainer: {
     flexDirection: 'row',
@@ -131,7 +157,7 @@ const styles = StyleSheet.create({
   button: {
     width: '100%',
     aspectRatio: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#1F4E79',
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
@@ -143,11 +169,11 @@ const styles = StyleSheet.create({
   },
   buttonIcon: {
     width: 100,
-    height: 110,
+    height: 90,
     marginBottom: 10,
   },
   buttonText: {
-    color: '#333',
+    color: '#fff',
     fontSize: 16,
     textAlign: 'center',
   },
@@ -168,17 +194,18 @@ const styles = StyleSheet.create({
     color: 'red',
   },
   heartText: {
-    fontSize: 18,
+    fontSize: 20,
   },
   wishlistButton: {
     padding: 15,
-    backgroundColor: '#007bff',
+    backgroundColor: '#1F4E79',
     alignItems: 'center',
     justifyContent: 'center',
   },
   wishlistButtonText: {
+
     color: '#fff',
-    fontSize: 18,
+    fontSize: 20,
   },
 });
 
