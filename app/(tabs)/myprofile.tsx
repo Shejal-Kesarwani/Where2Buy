@@ -1,10 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Image, Alert, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Image, Alert, TextInput, TouchableOpacity, SafeAreaView, Modal } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db, storage } from './firebaseConfig';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
+import { Audio } from 'expo-av'; // Import expo-av for audio playback
+
+// Import the logo image
+import appLogo from '../(tabs)/app_logo1233.png';
+
+const buttonData = [
+  { image: { uri: 'https://w7.pngwing.com/pngs/469/622/png-transparent-sneakers-shoe-puma-oakley-inc-sunglasses-men-shoes-white-leather-outdoor-shoe.png' }, text: 'History', href: '/(modals)/history' },
+  { image: { uri: 'https://example.com/music-icon.png' }, text: 'My Music', href: '/(modals)/music' }
+];
 
 export default function App() {
   const [image, setImage] = useState(null);
@@ -12,6 +23,17 @@ export default function App() {
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [musicModalVisible, setMusicModalVisible] = useState(false);
+  const [musicFiles, setMusicFiles] = useState([
+    { title: 'Song 1', uri: 'https://dn720303.ca.archive.org/0/items/i-aint-worried/I%20Aint%20Worried.mp3' },
+    { title: 'Song 2', uri: 'https://ia801308.us.archive.org/0/items/PursuitOfHappinessz/KidCudi-PursuitOfHappinessfeat.MgmtRatatat-Hnhh.mp3' }
+  ]);
+  const [selectedMusic, setSelectedMusic] = useState(null);
+  const [sound, setSound] = useState(null); // State to manage the audio playback
+  const [isPlaying, setIsPlaying] = useState(false); // State to manage playback status
+
+  const navigation = useNavigation();
 
   useEffect(() => {
     (async () => {
@@ -23,19 +45,19 @@ export default function App() {
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        setEmail(user.email); // Main reference to the user
+        setEmail(user.email);
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         if (userDoc.exists()) {
           const userData = userDoc.data();
           setName(userData.name);
           setAddress(userData.address);
           setPhone(userData.phone);
-          setImage(userData.image); // Assuming image URL is stored in the user document
+          setImage(userData.image);
         }
       }
     });
 
-    return () => unsubscribe(); // Cleanup on unmount
+    return () => unsubscribe();
   }, []);
 
   const pickImage = async () => {
@@ -96,14 +118,67 @@ export default function App() {
     }
   };
 
+  const openModal = () => {
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+  };
+
+  const openMusicModal = () => {
+    setMusicModalVisible(true);
+  };
+
+  const closeMusicModal = () => {
+    setMusicModalVisible(false);
+  };
+
+  const playMusic = async (uri) => {
+    if (sound) {
+      await sound.unloadAsync(); // Stop the previous sound if it's playing
+    }
+
+    const { sound: newSound } = await Audio.Sound.createAsync(
+      { uri }
+    );
+    setSound(newSound);
+    await newSound.playAsync();
+    setSelectedMusic(uri);
+    setIsPlaying(true); // Set playback status to true
+  };
+
+  const pauseMusic = async () => {
+    if (sound && isPlaying) {
+      await sound.pauseAsync();
+      setIsPlaying(false); // Set playback status to false
+    }
+  };
+
+  const stopMusic = async () => {
+    if (sound) {
+      await sound.stopAsync();
+      setIsPlaying(false); // Set playback status to false
+    }
+  };
+
+  const visitHistory = [
+    { shop: 'Zudio', time: '2024-08-01 10:00 AM' },
+    { shop: 'Levis', time: '2024-08-02 02:30 PM' },
+    { shop: 'Puma', time: '2024-08-03 04:15 PM' }
+  ];
+
   return (
     <View style={styles.container}>
-      <Image 
-        source={{ uri: 'https://ibb.co/n6Tydcv' }} 
-        style={styles.headerImage} 
-      />
-      <View style={styles.content}>
-        <Text style={styles.header}>My Profile</Text>
+      <LinearGradient
+        colors={['#1F4E79', '#EAF0F7']}
+        style={styles.headerContainer}
+      >
+        <Image source={appLogo} style={styles.logo} />
+        <Text style={styles.header}>Edit Profile</Text>
+      </LinearGradient>
+      
+      <View style={styles.profileImageContainer}>
         <TouchableOpacity onPress={pickImage}>
           {image ? (
             <Image source={{ uri: image }} style={styles.image} />
@@ -113,6 +188,20 @@ export default function App() {
             </View>
           )}
         </TouchableOpacity>
+        <SafeAreaView style={styles.buttonContainer}>
+    {buttonData.map((data, index) => (
+      <TouchableOpacity 
+        key={index} 
+        style={styles.historyButton}
+        onPress={data.text === 'History' ? openModal : openMusicModal}
+      >
+        <Text style={styles.historyButtonText}>{data.text}</Text>
+      </TouchableOpacity>
+    ))}
+  </SafeAreaView>
+      </View>
+      
+      <View style={styles.content}>
         <TextInput
           style={styles.input}
           placeholder="Name"
@@ -141,6 +230,81 @@ export default function App() {
           <Text style={styles.buttonText}>Update Profile</Text>
         </TouchableOpacity>
       </View>
+
+      {/* History Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={closeModal}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalHeader}>History Details</Text>
+            {visitHistory.length > 0 ? (
+              visitHistory.map((visit, index) => (
+                <View key={index} style={styles.visitItem}>
+                  <Text style={styles.shopName}>{visit.shop}</Text>
+                  <Text style={styles.visitTime}>{visit.time}</Text>
+                </View>
+              ))
+            ) : (
+              <Text>No visit history found.</Text>
+            )}
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={closeModal}
+            >
+              <Text style={styles.modalCloseButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Music Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={musicModalVisible}
+        onRequestClose={closeMusicModal}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalHeader}>Music For Your Journey To Store</Text>
+            {musicFiles.length > 0 ? (
+              musicFiles.map((file, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.musicItem}
+                  onPress={() => playMusic(file.uri)}
+                >
+                  <Text style={styles.musicTitle}>{file.title}</Text>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <Text>No music files found.</Text>
+            )}
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={closeMusicModal}
+            >
+              <Text style={styles.modalCloseButtonText}>Close</Text>
+            </TouchableOpacity>
+            {isPlaying ? (
+              <TouchableOpacity style={styles.controlButton} onPress={pauseMusic}>
+                <Text style={styles.controlButtonText}>Pause</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity style={styles.controlButton} onPress={() => playMusic(selectedMusic)}>
+                <Text style={styles.controlButtonText}>Play</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity style={styles.controlButton} onPress={stopMusic}>
+              <Text style={styles.controlButtonText}>Stop</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -148,24 +312,90 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#EAF0F7',
+    backgroundColor: '#F5F5F5',
   },
-  headerImage: {
-    width: '100%',
-    height: 100,
+  logo: {
+    width: 190,
+    height: 190,
     resizeMode: 'contain',
+    marginTop: 80,
+  },
+  headerContainer: {
+    height: 250,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderBottomLeftRadius: 150,
+    borderBottomRightRadius: 150,
+    position: 'relative',
+  },
+  header: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'black',
+    marginBottom: 165,
+    fontFamily: 'sans-serif',
+  },
+  profileImageContainer: {
+    marginTop: -60,
+    alignItems: 'center',
+  },
+  image: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    marginBottom: 20,
+  },
+  imagePlaceholder: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#CCCCCC',
+    marginBottom: 20,
+  },
+  placeholderText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  buttonContainer: {
+    flexDirection: 'row', // Align buttons horizontally
+    justifyContent: 'space-between', // Space buttons evenly
+    width: '100%', // Ensure container takes full width
+    paddingHorizontal: 20, // Add some horizontal padding
+  },
+  historyButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.4)', // Semi-transparent background
+    height: 40,
+    width: 40,
+    borderRadius: 20,
+    elevation: 5,
+    shadowColor: '#000', // Shadow for depth
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    borderWidth: 1, // Border to enhance the glass effect
+    borderColor: 'rgba(255, 255, 255, 0.6)',
+    flex: 1, // Allow buttons to stretch evenly
+    marginHorizontal: 5, // Add margin between buttons
+    alignItems: 'center',
+  },
+  historyButtonText: {
+    color: 'black',
+    fontSize: 15,
+    fontWeight: 'bold',
+    top: 8,
   },
   content: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
     padding: 20,
-    marginBottom: 100,
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    bottom: 20,
   },
   input: {
     width: '100%',
@@ -176,40 +406,77 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#fff',
   },
-  image: {
-    width: 100,
-    height: 100,
-    borderRadius: 100,
-    borderWidth: 2,
-    borderColor: '#B0C4DE',
-    marginBottom: 20,
-  },
-  imagePlaceholder: {
-    width: 100,
-    height: 100,
-    borderRadius: 100,
-    borderWidth: 2,
-    borderColor: '#B0C4DE',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#D3D3D3',
-    marginBottom: 20,
-  },
-  placeholderText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    textAlign: 'center',
-  },
   button: {
-    marginTop: 10,
+    marginTop: 30,
     backgroundColor: '#1F4E79',
-    padding: 10,
+    padding: 15,
     borderRadius: 25,
     alignItems: 'center',
-    width: '50%',
+    width: '60%',
   },
   buttonText: {
     color: '#FFFFFF',
+    fontSize: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    width: '80%',
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  visitItem: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    paddingVertical: 10,
+  },
+  shopName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  visitTime: {
+    fontSize: 14,
+    color: 'gray',
+  },
+  modalCloseButton: {
+    marginTop: 20,
+    backgroundColor: '#007BFF',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  modalCloseButtonText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  controlButton: {
+    backgroundColor: '#1F4E79',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  controlButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+  },
+  musicItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  musicTitle: {
     fontSize: 16,
   },
 });

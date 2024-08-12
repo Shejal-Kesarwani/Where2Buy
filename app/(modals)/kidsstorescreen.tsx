@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { db } from '../(tabs)/firebaseConfig'; // Adjust the path as needed
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { db, auth } from '../(tabs)/firebaseConfig'; 
+import { doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
 
 const shoeData = [
+ 
   { name: 'Toys ', offers: '30% off sale', category: 'Kids Store', image: { uri: 'https://images.hellomagazine.com/horizon/square/9f9b151047f8-top-toys-2023-best-kids-toys-for-christmas.jpg' } },
   { name: 'Puzzles', offers: '20% off sale', category: 'Kids Store', image: { uri: 'https://m.media-amazon.com/images/I/71Y77gJgE0L.jpg' } },
   { name: 'Kids Clothes', offers: '20% off sale', category: 'Kids Store', image: { uri: 'https://i.pinimg.com/originals/df/09/df/df09dfce328a66304b9281c2a7f725a7.jpg' } },
@@ -15,27 +17,41 @@ const shoeData = [
 ];
 
 const ShoeScreen = () => {
-  const [wishlist, setWishlist] = useState({}); // Store wishlist as an object with categories
+  const [wishlist, setWishlist] = useState({});
+  const [userId, setUserId] = useState(null);
   const navigation = useNavigation();
 
   useEffect(() => {
-    const fetchWishlist = async () => {
-      try {
-        const wishlistDoc = doc(db, 'wishlist', 'userWishlist'); // Replace 'userWishlist' with your user identifier if needed
-        const docSnap = await getDoc(wishlistDoc);
-
-        if (docSnap.exists()) {
-          setWishlist(docSnap.data());
-        }
-      } catch (error) {
-        console.error('Error fetching wishlist: ', error);
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserId(user.uid);
+      } else {
+        setUserId(null);
       }
-    };
+    });
 
-    fetchWishlist();
+    return () => unsubscribeAuth();
   }, []);
 
+  useEffect(() => {
+    if (!userId) return;
+
+    const wishlistDoc = doc(db, 'userWishlists', userId); 
+
+    const unsubscribe = onSnapshot(wishlistDoc, (docSnap) => {
+      if (docSnap.exists()) {
+        setWishlist(docSnap.data() || {});
+      } else {
+        setWishlist({});
+      }
+    });
+
+    return () => unsubscribe();
+  }, [userId]);
+
   const toggleWishlist = async (shoe) => {
+    if (!userId) return;
+
     try {
       setWishlist((prevWishlist) => {
         const category = shoe.category;
@@ -51,8 +67,8 @@ const ShoeScreen = () => {
               [category]: [...itemsInCategory, shoe.name],
             };
 
-        // Update Firestore
-        const wishlistDoc = doc(db, 'wishlist', 'userWishlist'); // Replace 'userWishlist' with your user identifier if needed
+      
+        const wishlistDoc = doc(db, 'userWishlists', userId); 
         setDoc(wishlistDoc, updatedWishlist);
 
         return updatedWishlist;
@@ -69,6 +85,7 @@ const ShoeScreen = () => {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.Head}>Kids Store</Text>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {shoeData.map((shoe, index) => (
           <View key={index} style={styles.buttonContainer}>
@@ -108,8 +125,17 @@ const ShoeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#B0C4DE',
     marginTop: 40,
+  },
+  Head:{
+    padding: 15,
+    backgroundColor: '#1F4E79',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#fff',
+    fontSize: 22,
+    fontWeight:'bold'
   },
   scrollContainer: {
     flexDirection: 'row',
@@ -126,7 +152,7 @@ const styles = StyleSheet.create({
   button: {
     width: '100%',
     aspectRatio: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#1F4E79',
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
@@ -138,11 +164,11 @@ const styles = StyleSheet.create({
   },
   buttonIcon: {
     width: 100,
-    height: 110,
+    height: 90,
     marginBottom: 10,
   },
   buttonText: {
-    color: '#333',
+    color: '#fff',
     fontSize: 16,
     textAlign: 'center',
   },
@@ -163,17 +189,18 @@ const styles = StyleSheet.create({
     color: 'red',
   },
   heartText: {
-    fontSize: 18,
+    fontSize: 20,
   },
   wishlistButton: {
     padding: 15,
-    backgroundColor: '#007bff',
+    backgroundColor: '#1F4E79',
     alignItems: 'center',
     justifyContent: 'center',
   },
   wishlistButtonText: {
+
     color: '#fff',
-    fontSize: 18,
+    fontSize: 20,
   },
 });
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { db } from '../(tabs)/firebaseConfig'; 
-import { doc, onSnapshot, updateDoc, deleteField } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot, updateDoc, deleteField } from 'firebase/firestore';
 import { auth } from '../(tabs)/firebaseConfig'; 
 import { onAuthStateChanged } from 'firebase/auth';
 

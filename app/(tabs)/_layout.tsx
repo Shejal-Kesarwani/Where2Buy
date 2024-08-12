@@ -1,7 +1,5 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { FontAwesome5 } from '@expo/vector-icons';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
 
 const Layout = () => {
@@ -17,6 +15,7 @@ const Layout = () => {
         options={{
           tabBarLabel: 'Explore',
           tabBarIcon: ({ size, color }) => <Ionicons name="search" size={size} color={color} />,
+         // Hide the header for this screen
         }}
       />
       <Tabs.Screen
@@ -24,6 +23,7 @@ const Layout = () => {
         options={{
           tabBarLabel: 'Rate Us',
           tabBarIcon: ({ size, color }) => <Ionicons name="star" size={size} color={color} />,
+          headerShown: false,  // Hide the header for this screen
         }}
       />
       <Tabs.Screen
@@ -31,17 +31,17 @@ const Layout = () => {
         options={{
           tabBarLabel: 'Wishlist',
           tabBarIcon: ({ size, color }) => <Ionicons name="bag" size={size} color={color} />,
+          headerShown: false,  // Hide the header for this screen
         }}
       />
-      
       <Tabs.Screen
         name="myprofile"
         options={{
           tabBarLabel: 'My Profile',
           tabBarIcon: ({ size, color }) => <Ionicons name="man" size={size} color={color} />,
+          headerShown: false,  // Hide the header for this screen
         }}
       />
-
     </Tabs>
   );
 };
