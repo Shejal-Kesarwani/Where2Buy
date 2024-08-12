@@ -125,7 +125,7 @@ const ShoeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#B0C4DE',
+    backgroundColor: '#EAF0F7',
     marginTop: 40,
   },
   Head:{
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
 
     color: '#fff',
     fontSize: 20,
-  },
+  }
 });
 
 export default ShoeScreen;

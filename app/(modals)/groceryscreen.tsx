@@ -1,46 +1,62 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { db } from '../(tabs)/firebaseConfig'; // Adjust the path as needed
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { db, auth } from '../(tabs)/firebaseConfig'; 
+import { doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
 
 const shoeData = [
   { name: 'Vegetables', offers: '30% off sale', category: 'Grocery', image: { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4vbJ9J2erGuOudV0SOEXJbQKskLEP--WhsQ&s' } },
   { name: 'Fruits', offers: '20% off sale', category: 'Grocery', image: { uri: 'https://akm-img-a-in.tosshub.com/indiatoday/images/story/202312/6-fruits-to-eat-on-empty-stomach-053937965-1x1.jpg?VersionId=xIXuT3WPQa4V8dHjQllmefHlDH1mfNDw' } },
   { name: 'Bread', offers: '20% off sale', category: 'Grocery', image: { uri: 'https://tastesbetterfromscratch.com/wp-content/uploads/2020/03/Bread-Recipe-5-2.jpg' } },
-  { name: 'Beverages', offers: '10% off sale', category: 'Grocery', image: { uri: 'https://assets.ajio.com/medias/sys_master/root/20230707/iOvB/64a8495ca9b42d15c946314f/-473Wx593H-469524320-blue-MODEL.jpg' } },
-  { name: 'Milk', offers: '40% off sale', category: 'Grocery', image: { uri: 'https://www.zudio.com/cdn/shop/products/300903431003_1_576x.jpg?v=1662205959' } },
-  { name: 'Cheese', offers: '20% off sale', category: 'Grocery', image: { uri: 'https://nb.scene7.com/is/image/NB/mj41506bk_nb_55_i?$pdpflexf2$&wid=440&hei=440' } },
-  { name: 'Frozen Foods', offers: '10% off sale', category: 'Grocery', image: { uri: 'https://i.pinimg.com/originals/3c/2f/05/3c2f05b53ff6be53547f531a4bfbb27e.jpg' } },
-  { name: 'Snacks', offers: 'Buy 2 @ price of 1', category: 'Grocery', image: { uri: 'https://www.adityabirla.com/Upload/Content_Files/pantaloons-4.png' } },
-  { name: 'Seafood', offers: 'Buy 2 tshirts @ price of 1', category: 'Grocery', image: { uri: 'https://assets.esdemarca.com/beta/var/images1000/3136345a.jpg' } },
-  { name: 'Cleaning Supplies', offers: '30% off sale', category: 'Grocery', image: { uri: 'https://wforwoman.com/cdn/shop/files/23AUW19882-220612_1_1dd41053-8e89-4135-b340-143888d9c692.jpg?v=1721363836' } },
-  { name: 'Dry Fruits', offers: '15% off sale', category: 'Grocery', image: { uri: 'https://logan.nnnow.com/content/dam/nnnow-project/19-feb-2024/arrow-ss-24/NAV3.jpg' } },
-  { name: 'Spices', offers: '30% off sale', category: 'Grocery', image: { uri: 'https://pbs.twimg.com/media/CQO0y47UEAASvV5.png' } },
+  { name: 'Beverages', offers: '10% off sale', category: 'Grocery', image: { uri: 'https://thumbs.dreamstime.com/b/cans-beverages-19492376.jpg' } },
+  { name: 'Milk', offers: '40% off sale', category: 'Grocery', image: { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQPw0DWZerMJ7q5g3IRUqZRn6jPjVQfrJ3dxQ&s' } },
+  { name: 'Cheese', offers: '20% off sale', category: 'Grocery', image: { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhhm4yZhLinbQJR8wRsYmBgtdE9K0nSyvsaA&s' } },
+  { name: 'Frozen Foods', offers: '10% off sale', category: 'Grocery', image: { uri: 'https://content.jdmagicbox.com/comp/raipur-chhattisgarh/k2/9999px771.x771.220922015412.r5k2/catalogue/goeld-frozen-food-raipur-chhattisgarh-frozen-food-product-retailers-493f7gfkoc-250.jpg' } },
+  { name: 'Snacks', offers: 'Buy 2 @ price of 1', category: 'Grocery', image: { uri: 'https://m.media-amazon.com/images/I/81ZX-dvnU1L.jpg' } },
+  { name: 'Cookware', offers: 'Buy 2 tshirts @ price of 1', category: 'Grocery', image: { uri: 'https://vinodcookware.com/cdn/shop/products/1m0a6208.jpg?v=1645848884' } },
+  { name: 'Cleaning Supplies', offers: '30% off sale', category: 'Grocery', image: { uri: 'https://m.media-amazon.com/images/I/61R2fPIJM0L.jpg' } },
+  { name: 'Dry Fruits', offers: '15% off sale', category: 'Grocery', image: { uri: 'https://farmfreshbangalore.com/cdn/shop/files/GiftBox.jpg?v=1696940603' } },
+  { name: 'Spices', offers: '30% off sale', category: 'Grocery', image: { uri: 'https://thewholesaler.in/cdn/shop/products/thewholesalerco-IndianVegRecipeSpices-Essential-kitchen-masala-pack.jpg?v=1671605208' } },
+
 ];
 
 const ShoeScreen = () => {
-  const [wishlist, setWishlist] = useState({}); // Store wishlist as an object with categories
+  const [wishlist, setWishlist] = useState({});
+  const [userId, setUserId] = useState(null);
   const navigation = useNavigation();
 
   useEffect(() => {
-    const fetchWishlist = async () => {
-      try {
-        const wishlistDoc = doc(db, 'wishlist', 'userWishlist'); // Replace 'userWishlist' with your user identifier if needed
-        const docSnap = await getDoc(wishlistDoc);
-
-        if (docSnap.exists()) {
-          setWishlist(docSnap.data());
-        }
-      } catch (error) {
-        console.error('Error fetching wishlist: ', error);
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserId(user.uid);
+      } else {
+        setUserId(null);
       }
-    };
+    });
 
-    fetchWishlist();
+    return () => unsubscribeAuth();
   }, []);
 
+  useEffect(() => {
+    if (!userId) return;
+
+    const wishlistDoc = doc(db, 'userWishlists', userId); 
+
+    const unsubscribe = onSnapshot(wishlistDoc, (docSnap) => {
+      if (docSnap.exists()) {
+        setWishlist(docSnap.data() || {});
+      } else {
+        setWishlist({});
+      }
+    });
+
+    return () => unsubscribe();
+  }, [userId]);
+
   const toggleWishlist = async (shoe) => {
+    if (!userId) return;
+
     try {
       setWishlist((prevWishlist) => {
         const category = shoe.category;
@@ -56,8 +72,8 @@ const ShoeScreen = () => {
               [category]: [...itemsInCategory, shoe.name],
             };
 
-        // Update Firestore
-        const wishlistDoc = doc(db, 'wishlist', 'userWishlist'); // Replace 'userWishlist' with your user identifier if needed
+      
+        const wishlistDoc = doc(db, 'userWishlists', userId); 
         setDoc(wishlistDoc, updatedWishlist);
 
         return updatedWishlist;
@@ -74,6 +90,7 @@ const ShoeScreen = () => {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.Head}>Grocery</Text>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {shoeData.map((shoe, index) => (
           <View key={index} style={styles.buttonContainer}>
@@ -113,8 +130,17 @@ const ShoeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#B0C4DE',
     marginTop: 40,
+  },
+  Head:{
+    padding: 15,
+    backgroundColor: '#1F4E79',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#fff',
+    fontSize: 22,
+    fontWeight:'bold'
   },
   scrollContainer: {
     flexDirection: 'row',
@@ -131,7 +157,7 @@ const styles = StyleSheet.create({
   button: {
     width: '100%',
     aspectRatio: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#1F4E79',
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
@@ -143,11 +169,11 @@ const styles = StyleSheet.create({
   },
   buttonIcon: {
     width: 100,
-    height: 110,
+    height: 90,
     marginBottom: 10,
   },
   buttonText: {
-    color: '#333',
+    color: '#fff',
     fontSize: 16,
     textAlign: 'center',
   },
@@ -168,17 +194,18 @@ const styles = StyleSheet.create({
     color: 'red',
   },
   heartText: {
-    fontSize: 18,
+    fontSize: 20,
   },
   wishlistButton: {
     padding: 15,
-    backgroundColor: '#007bff',
+    backgroundColor: '#1F4E79',
     alignItems: 'center',
     justifyContent: 'center',
   },
   wishlistButtonText: {
+
     color: '#fff',
-    fontSize: 18,
+    fontSize: 20,
   },
 });
 

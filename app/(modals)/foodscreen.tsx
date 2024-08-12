@@ -90,7 +90,7 @@ const ShoeScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.Head}>Clothing</Text>
+      <Text style={styles.Head}>Food</Text>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {shoeData.map((shoe, index) => (
           <View key={index} style={styles.buttonContainer}>

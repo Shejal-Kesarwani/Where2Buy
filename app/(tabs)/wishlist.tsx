@@ -130,7 +130,7 @@ const WelcomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#E7F0DC',
+    backgroundColor: '#EAF0F7',
     padding: 20,
   },
   text: {
@@ -150,9 +150,9 @@ const styles = StyleSheet.create({
   },
   categoryTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: 'bold',
     fontFamily: 'Roboto',
-    color: '#2C3E50',  
+    color: '#B5C0D0',  
     marginBottom: 15,
     borderBottomColor: '#2C3E50',
     paddingBottom: 5,
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   wishlistItem: {
-    backgroundColor: '#FFFFFF', 
+    backgroundColor: '#BBE9FF', 
     padding: 15,
     borderRadius: 15,  
     width: '48%',
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   removeButton: {
-    backgroundColor: '#6B8A7A',  
+    backgroundColor: '#1F4E79',  
     paddingVertical: 10,
     borderRadius: 10,
     alignItems: 'center',

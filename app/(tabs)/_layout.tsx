@@ -7,39 +7,47 @@ const Layout = () => {
     <Tabs
       screenOptions={{
         tabBarLabelStyle: {
-          fontFamily: 'mon-sb',
+          fontFamily: 'Roboto',
+          paddingBottom: 5, // Adjust this to move the label slightly up
         },
       }}>
       <Tabs.Screen
         name="index"
         options={{
-          tabBarLabel: 'Explore',
-          tabBarIcon: ({ size, color }) => <Ionicons name="search" size={size} color={color} />,
-         // Hide the header for this screen
-        }}
-      />
-      <Tabs.Screen
-        name="rateus"
-        options={{
-          tabBarLabel: 'Rate Us',
-          tabBarIcon: ({ size, color }) => <Ionicons name="star" size={size} color={color} />,
-          headerShown: false,  // Hide the header for this screen
+          tabBarLabel: 'Home',
+          tabBarIcon: ({ size, color }) => (
+            <Ionicons name="home" size={size} color="#1F4E79" />
+          ),
         }}
       />
       <Tabs.Screen
         name="wishlist"
         options={{
-          tabBarLabel: 'Wishlist',
-          tabBarIcon: ({ size, color }) => <Ionicons name="bag" size={size} color={color} />,
-          headerShown: false,  // Hide the header for this screen
+          tabBarLabel: 'WishList',
+          tabBarIcon: ({ size, color }) => (
+            <Ionicons name="bag" size={size} color="#1F4E79" />
+          ),
+          headerShown: false,
+        }}
+      />
+      <Tabs.Screen
+        name="rateus"
+        options={{
+          tabBarLabel: 'FeedBack',
+          tabBarIcon: ({ size, color }) => (
+            <Ionicons name="star" size={size} color="#1F4E79" />
+          ),
+          headerShown: false,
         }}
       />
       <Tabs.Screen
         name="myprofile"
         options={{
-          tabBarLabel: 'My Profile',
-          tabBarIcon: ({ size, color }) => <Ionicons name="man" size={size} color={color} />,
-          headerShown: false,  // Hide the header for this screen
+          tabBarLabel: 'Profile',
+          tabBarIcon: ({ size, color }) => (
+            <Ionicons name="person-circle" size={30} color="#1F4E79" />
+          ),
+          headerShown: false,
         }}
       />
     </Tabs>
