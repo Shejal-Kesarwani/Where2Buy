@@ -70,6 +70,7 @@ const styles = StyleSheet.create({
   image:{
     height:'15%',
     width:'30%',
+    marginTop:90,
   },
  
   text: {

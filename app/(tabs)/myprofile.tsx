@@ -26,8 +26,8 @@ export default function App() {
   const [modalVisible, setModalVisible] = useState(false);
   const [musicModalVisible, setMusicModalVisible] = useState(false);
   const [musicFiles, setMusicFiles] = useState([
-    { title: 'Song 1', uri: 'https://dn720303.ca.archive.org/0/items/i-aint-worried/I%20Aint%20Worried.mp3' },
-    { title: 'Song 2', uri: 'https://ia801308.us.archive.org/0/items/PursuitOfHappinessz/KidCudi-PursuitOfHappinessfeat.MgmtRatatat-Hnhh.mp3' }
+    { title: 'I Aint Worried', uri: 'https://dn720303.ca.archive.org/0/items/i-aint-worried/I%20Aint%20Worried.mp3' },
+    { title: 'Pursuit of happiness', uri: 'https://ia801308.us.archive.org/0/items/PursuitOfHappinessz/KidCudi-PursuitOfHappinessfeat.MgmtRatatat-Hnhh.mp3' }
   ]);
   const [selectedMusic, setSelectedMusic] = useState(null);
   const [sound, setSound] = useState(null); // State to manage the audio playback

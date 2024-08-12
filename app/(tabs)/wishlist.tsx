@@ -140,6 +140,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
     letterSpacing: 1.5,  
+    marginTop:30,
   },
   scrollContainer: {
     paddingBottom: 20,
