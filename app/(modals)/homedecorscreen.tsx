@@ -1,54 +1,46 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { db, auth } from '../(tabs)/firebaseConfig'; 
-import { doc, setDoc, onSnapshot } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
+import { db } from '../(tabs)/firebaseConfig'; // Adjust the path as needed
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 const shoeData = [
-  { name: 'Idols', offers: '30% off sale', category: 'Home Decor', image: { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4vbJ9J2erGuOudV0SOEXJbQKskLEP--WhsQ&s' } },
-  { name: 'Wall Stickers', offers: '20% off sale', category: 'Home Decor', image: { uri: 'https://akm-img-a-in.tosshub.com/indiatoday/images/story/202312/6-fruits-to-eat-on-empty-stomach-053937965-1x1.jpg?VersionId=xIXuT3WPQa4V8dHjQllmefHlDH1mfNDw' } },
-  { name: 'Furniture', offers: '20% off sale', category: 'Home Decor', image: { uri: 'https://tastesbetterfromscratch.com/wp-content/uploads/2020/03/Bread-Recipe-5-2.jpg' } },
-  { name: 'Doors', offers: '10% off sale', category: 'Home Decor', image: { uri: 'https://assets.ajio.com/medias/sys_master/root/20230707/iOvB/64a8495ca9b42d15c946314f/-473Wx593H-469524320-blue-MODEL.jpg' } },
-
+  { name: 'Mason Home', offers: '30% off sale', category: 'Home Decor', image: { uri: 'https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcRT5mn31fRMektbYrOD5wcaCfGxeE4X-V-NuxqioijI5WspfFGC' } },
+  { name: 'Chumbak', offers: '20% off sale', category: 'Home Decor', image: { uri: 'https://m.economictimes.com/thumb/msid-76857996,width-1200,height-900,resizemode-4,imgsize-49611/chumbak.jpg' } },
+  { name: 'Nicobar', offers: '20% off sale', category: 'Home Decor', image: { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpVZZ6HptPc7g2MTtwqr0rSfFD6XkFUKUTWGb-AHXAa2BccvNUUVN_AP8N5uWopTb06Yg&usqp=CAU' } },
+  { name: 'Fabindia', offers: '10% off sale', category: 'Home Decor', image: { uri: 'https://prod-bof-media.s3.eu-west-1.amazonaws.com/import/uploads/media/header_image/0001/02/abaebe5b4593d925c352d0afac1e6737edc6c986.jpeg' } },
+  { name: 'House This', offers: '40% off sale', category: 'Home Decor', image: { uri: 'https://www.shutterstock.com/image-vector/home-decoration-sign-vector-template-260nw-396999790.jpg' } },
+  { name: 'Luxe Living', offers: '20% off sale', category: 'Home Decor', image: { uri: 'https://assets.architecturaldigest.in/photos/60083b7fa87939f78414ef49/master/w_1600%2Cc_limit/Flame-of-Forest.jpg' } },
+  { name: 'Urban Ladder', offers: '10% off sale', category: 'Home Decor', image: { uri: 'https://www.urbanladder.com/deadpul-public/assets/images/branding/animated-logo.b3951.gif' } },
+  { name: 'Amouve', offers: 'Buy 2 @ price of 1', category: 'Home Decor', image: { uri: 'https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcR_zdgr3FLcFG-GPROLWRACU9DCqpvM0dAfDaUwxNWmJSu4knJ6' } },
+  { name: 'Oorjaa', offers: 'Buy 2 tshirts @ price of 1', category: 'Home Decor', image: { uri: 'https://imgmedia.lbb.in/media/2023/03/64269cb5c70b643ca53753cb_1680252085835.jpg' } },
+  { name: 'Amolicons', offers: '30% off sale', category: 'Home Decor', image: { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9-PPa7yCzPrGFOe4ra6E0wVAaF-K8J2F-ZWeZ4RKWVsx6icpp' } },
+  { name: 'Objectry', offers: '15% off sale', category: 'Home Decor', image: { uri: 'https://thehouseofthings.com/pub/media/ves/brand/objectry-logo-200x90.jpg' } },
+  { name: 'Home Center', offers: '30% off sale', category: 'Home Decor', image: { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR5ocz9XxDopH2_-2ClbXLhJyJBI8BX0tvKGQ&s' } },
 ];
 
 const ShoeScreen = () => {
-  const [wishlist, setWishlist] = useState({});
-  const [userId, setUserId] = useState(null);
+  const [wishlist, setWishlist] = useState({}); // Store wishlist as an object with categories
   const navigation = useNavigation();
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUserId(user.uid);
-      } else {
-        setUserId(null);
-      }
-    });
+    const fetchWishlist = async () => {
+      try {
+        const wishlistDoc = doc(db, 'wishlist', 'userWishlist'); // Replace 'userWishlist' with your user identifier if needed
+        const docSnap = await getDoc(wishlistDoc);
 
-    return () => unsubscribeAuth();
+        if (docSnap.exists()) {
+          setWishlist(docSnap.data());
+        }
+      } catch (error) {
+        console.error('Error fetching wishlist: ', error);
+      }
+    };
+
+    fetchWishlist();
   }, []);
 
-  useEffect(() => {
-    if (!userId) return;
-
-    const wishlistDoc = doc(db, 'userWishlists', userId); 
-
-    const unsubscribe = onSnapshot(wishlistDoc, (docSnap) => {
-      if (docSnap.exists()) {
-        setWishlist(docSnap.data() || {});
-      } else {
-        setWishlist({});
-      }
-    });
-
-    return () => unsubscribe();
-  }, [userId]);
-
   const toggleWishlist = async (shoe) => {
-    if (!userId) return;
-
     try {
       setWishlist((prevWishlist) => {
         const category = shoe.category;
@@ -64,8 +56,8 @@ const ShoeScreen = () => {
               [category]: [...itemsInCategory, shoe.name],
             };
 
-      
-        const wishlistDoc = doc(db, 'userWishlists', userId); 
+        // Update Firestore
+        const wishlistDoc = doc(db, 'wishlist', 'userWishlist'); // Replace 'userWishlist' with your user identifier if needed
         setDoc(wishlistDoc, updatedWishlist);
 
         return updatedWishlist;
@@ -119,10 +111,11 @@ const ShoeScreen = () => {
   );
 };
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#B0C4DE',
+    backgroundColor: '#EAF0F7',
     marginTop: 40,
   },
   Head:{
@@ -200,5 +193,4 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
 });
-
 export default ShoeScreen;

@@ -1,62 +1,46 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { db, auth } from '../(tabs)/firebaseConfig'; 
-import { doc, setDoc, onSnapshot } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
+import { db } from '../(tabs)/firebaseConfig'; // Adjust the path as needed
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 const shoeData = [
-  { name: 'North Indian Food', offers: '30% off sale', category: 'Food', image: { uri: 'https://apisap.fabindia.com/medias/10733947-1.jpg?context=bWFzdGVyfGltYWdlc3wxMzk5MTB8aW1hZ2UvanBlZ3xhR001TDJobE1pODRPVGN3TlRBM01UVTNOVE0wTHpFd056TXpPVFEzWHpFdWFuQm58YjUzZWI3NDFhZDkyN2RlMTQ4ZTkxNjQyYzZlYmUzYTg5YWJhYmQyOTQ2MmFmZjk3YTAyNDU5NWRkYzgxYjhhYw' } },
-  { name: 'South Indian Food', offers: '20% off sale', category: 'Food', image: { uri: 'https://i.pinimg.com/originals/52/87/f6/5287f602cc11fa34799ce36bff69a9bb.png' } },
-  { name: 'Maharashtrian Food', offers: '20% off sale', category: 'Food', image: { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcScEFlIwcEkvXinHoo2GqNbf9qolN-r7G87XS9RFhB9o-aaT1XOUrDJqj6hCDKPRP8K3G8&usqp=CAU' } },
-  { name: 'Italian Cuisine', offers: '10% off sale', category: 'Food', image: { uri: 'https://assets.ajio.com/medias/sys_master/root/20230707/iOvB/64a8495ca9b42d15c946314f/-473Wx593H-469524320-blue-MODEL.jpg' } },
-  { name: 'Burger King', offers: '40% off sale', category: 'Food', image: { uri: 'https://www.zudio.com/cdn/shop/products/300903431003_1_576x.jpg?v=1662205959' } },
-  { name: 'Chinise Cuisine', offers: '20% off sale', category: 'Food', image: { uri: 'https://nb.scene7.com/is/image/NB/mj41506bk_nb_55_i?$pdpflexf2$&wid=440&hei=440' } },
-  { name: 'McDonalds', offers: '10% off sale', category: 'Food', image: { uri: 'https://i.pinimg.com/originals/3c/2f/05/3c2f05b53ff6be53547f531a4bfbb27e.jpg' } },
-  { name: 'Pizza Hut', offers: 'Buy 2 @ price of 1', category: 'Food', image: { uri: 'https://www.adityabirla.com/Upload/Content_Files/pantaloons-4.png' } },
-  { name: 'Dominos', offers: 'Buy 2 tshirts @ price of 1', category: 'Food', image: { uri: 'https://assets.esdemarca.com/beta/var/images1000/3136345a.jpg' } },
-  { name: 'Juices', offers: '30% off sale', category: 'Food', image: { uri: 'https://wforwoman.com/cdn/shop/files/23AUW19882-220612_1_1dd41053-8e89-4135-b340-143888d9c692.jpg?v=1721363836' } },
-  { name: 'Sandwiches', offers: '15% off sale', category: 'Food', image: { uri: 'https://logan.nnnow.com/content/dam/nnnow-project/19-feb-2024/arrow-ss-24/NAV3.jpg' } },
-  { name: 'The Chai Point', offers: '30% off sale', category: 'Food', image: { uri: 'https://pbs.twimg.com/media/CQO0y47UEAASvV5.png' } },
-
+  { name: 'North Indian Food', offers: '30% off sale', category: 'Food', image: { uri: 'https://qph.cf2.quoracdn.net/main-qimg-430c19132d9e6aefb33ec9a1fc531d92-lq' } },
+  { name: 'South Indian Food', offers: '20% off sale', category: 'Food', image: { uri: 'https://assets.vogue.com/photos/63d169f727f1d528635b4287/master/w_2560%2Cc_limit/GettyImages-1292563627.jpg'} },
+  { name: 'Maharashtrian Food', offers: '20% off sale', category: 'Food', image: { uri: 'https://www.vegrecipesofindia.com/wp-content/uploads/2011/06/misal-pav-1v-500x500.jpg' } },
+  { name: 'Italian Cuisine', offers: '10% off sale', category: 'Food', image: { uri: 'https://www.hotelmousai.com/blog/wp-content/uploads/2021/12/Top-10-Traditional-Foods-in-Italy.jpg' } },
+  { name: 'Burger King', offers: '40% off sale', category: 'Food', image: { uri: 'https://b.zmtcdn.com/data/pictures/chains/5/61555/c8008523810583087401ff292c1763a3.jpg?fit=around|960:500&crop=960:500;*,*' } },
+  { name: 'Chinise Cuisine', offers: '20% off sale', category: 'Food', image: { uri: 'https://assets.zeezest.com/blogs/PROD_Banner_1663162846668.jpg'}},
+  { name: 'McDonalds', offers: '10% off sale', category: 'Food', image: { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSfSGd4rcJ6DPP0kypCGCrMXxbHM2WPtNpZNQ&s' } },
+  { name: 'Pizza Hut', offers: 'Buy 2 @ price of 1', category: 'Food', image: { uri: 'https://media-cdn.tripadvisor.com/media/photo-s/20/9f/25/59/great-food.jpg' } },
+  { name: 'Dominos', offers: 'Buy 2 tshirts @ price of 1', category: 'Food', image: { uri: 'https://akm-img-a-in.tosshub.com/businesstoday/images/story/202310/untitled-1_61-sixteen_nine.jpg?size=948:533' } },
+  { name: 'Juices', offers: '30% off sale', category: 'Food', image: { uri: 'https://d2wdttfod93r0n.cloudfront.net/BrandCategoryMapping/juices_0144202454234AM.png' } },
+  { name: 'Sandwiches', offers: '15% off sale', category: 'Food', image: { uri: 'https://www.southernliving.com/thmb/UW4kKKL-_M3WgP7pkL6Pb6lwcgM=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/Ham_Sandwich_011-1-49227336bc074513aaf8fdbde440eafe.jpg' } },
+  { name: 'Coffee Shops', offers: '30% off sale', category: 'Food', image: { uri: 'https://img.freepik.com/free-photo/fresh-coffee-steams-wooden-table-close-up-generative-ai_188544-8923.jpg' } },
 ];
 
 const ShoeScreen = () => {
-  const [wishlist, setWishlist] = useState({});
-  const [userId, setUserId] = useState(null);
+  const [wishlist, setWishlist] = useState({}); // Store wishlist as an object with categories
   const navigation = useNavigation();
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUserId(user.uid);
-      } else {
-        setUserId(null);
-      }
-    });
+    const fetchWishlist = async () => {
+      try {
+        const wishlistDoc = doc(db, 'wishlist', 'userWishlist'); // Replace 'userWishlist' with your user identifier if needed
+        const docSnap = await getDoc(wishlistDoc);
 
-    return () => unsubscribeAuth();
+        if (docSnap.exists()) {
+          setWishlist(docSnap.data());
+        }
+      } catch (error) {
+        console.error('Error fetching wishlist: ', error);
+      }
+    };
+
+    fetchWishlist();
   }, []);
 
-  useEffect(() => {
-    if (!userId) return;
-
-    const wishlistDoc = doc(db, 'userWishlists', userId); 
-
-    const unsubscribe = onSnapshot(wishlistDoc, (docSnap) => {
-      if (docSnap.exists()) {
-        setWishlist(docSnap.data() || {});
-      } else {
-        setWishlist({});
-      }
-    });
-
-    return () => unsubscribe();
-  }, [userId]);
-
   const toggleWishlist = async (shoe) => {
-    if (!userId) return;
-
     try {
       setWishlist((prevWishlist) => {
         const category = shoe.category;
@@ -72,8 +56,8 @@ const ShoeScreen = () => {
               [category]: [...itemsInCategory, shoe.name],
             };
 
-      
-        const wishlistDoc = doc(db, 'userWishlists', userId); 
+        // Update Firestore
+        const wishlistDoc = doc(db, 'wishlist', 'userWishlist'); // Replace 'userWishlist' with your user identifier if needed
         setDoc(wishlistDoc, updatedWishlist);
 
         return updatedWishlist;
@@ -90,7 +74,7 @@ const ShoeScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.Head}>Food</Text>
+    <Text style={styles.Head}>Food</Text>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {shoeData.map((shoe, index) => (
           <View key={index} style={styles.buttonContainer}>
@@ -127,10 +111,11 @@ const ShoeScreen = () => {
   );
 };
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#B0C4DE',
+    backgroundColor: '#EAF0F7',
     marginTop: 40,
   },
   Head:{
@@ -208,5 +193,4 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
 });
-
 export default ShoeScreen;

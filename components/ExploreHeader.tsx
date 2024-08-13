@@ -1,72 +1,76 @@
-import React, { useState } from 'react';
-import { View, Text, SafeAreaView, StyleSheet, ScrollView, TouchableOpacity, Modal, Image, Button, TextInput, FlatList } from 'react-native';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native'; // Import useNavigation
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, SafeAreaView, StyleSheet, ScrollView, TouchableOpacity, Modal, Image, Dimensions, Button } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+
+const screenWidth = Dimensions.get('window').width;
 
 const categories = [
   {
     name: 'Shoe Stores',
     icon: 'store',
-    image: 'https://d1csarkz8obe9u.cloudfront.net/posterpreviews/shoes-discount-sale-video-ads-design-template-5b8bd6b5421a0f223fef251a21fb41e9_screen.jpg?ts=1681109963',
+    images: [
+      'https://d1csarkz8obe9u.cloudfront.net/posterpreviews/shoes-discount-sale-video-ads-design-template-5b8bd6b5421a0f223fef251a21fb41e9_screen.jpg?ts=1681109963',
+      'https://cdn.create.vista.com/downloads/538df486-9dc5-46e8-b032-c1386496245e_640.jpeg',
+      'https://d1csarkz8obe9u.cloudfront.net/posterpreviews/new-arrival-discount-offer-on-shoes-poster-ad-design-template-20e8be063593e460ec1eadf156df2a71_screen.jpg?ts=1607504280'
+    ],
   },
   {
     name: 'Clothing',
     icon: 'store',
-    image: 'https://cdn.confect.io/uploads/media/10.webp',
+    images: [
+      'https://cdn.confect.io/uploads/media/10.webp',
+      'https://i.pinimg.com/564x/cd/54/b3/cd54b3b85ac45a759ed010142c830df3.jpg',
+      'https://templates.mediamodifier.com/5d9f0a841e443d3ad53ca8db/mens-fashion-sale-banner-maker.jpg'
+    ]
   },
   {
     name: 'Kids Store Offer',
     icon: 'child-friendly',
-    image: 'https://i.pinimg.com/736x/80/56/1e/80561e0b40d3b3270ae86e6667d95482.jpg',
+    images: [
+      'https://d1csarkz8obe9u.cloudfront.net/posterpreviews/kids-fashion-limited-time-sale-banner-design-template-bf52bcf63371f6006a98e226335a3109_screen.jpg?ts=1608128068',
+      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSaGpqmlqHuojG3kT8e0exp_3ff54CYstIZ6w&s'
+    ]
   },
   {
     name: 'Grocery',
     icon: 'local-grocery-store',
-    image: 'https://spencers.in/media/wysiwyg/websiteCreative.jpg',
-  }
-  // Add more categories as needed
+    images: [
+      'https://www.spencers.in/media/wysiwyg/websiteCreative.jpg',
+      'https://img.freepik.com/free-vector/hand-drawn-grocery-shopping-sale-banner_23-2151031432.jpg'
+    ]
+  },
+
 ];
 
 const ExploreHeader = () => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filteredCategories, setFilteredCategories] = useState(categories);
-  const [suggestionsVisible, setSuggestionsVisible] = useState(false);
-  const navigation = useNavigation(); // Use navigation hook
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const scrollViewRef = useRef<ScrollView>(null);
 
-  const showPopup = (image: string) => {
-    setSelectedImage(image);
+  const showPopup = (images: string[]) => {
+    setSelectedImages(images);
+    setCurrentImageIndex(0);
     setModalVisible(true);
   };
 
   const closeModal = () => {
-    setSelectedImage(null);
+    setSelectedImages([]);
     setModalVisible(false);
   };
 
-  const handleSearch = (text: string) => {
-    setSearchQuery(text);
-    setSuggestionsVisible(true);
-    const filtered = categories.filter(category =>
-      category.name.toLowerCase().includes(text.toLowerCase())
-    );
-    setFilteredCategories(filtered);
-  };
+  const handleScroll = (event: any) => {
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(contentOffsetX / screenWidth);
 
-  const handleKeyPress = (event: any) => {
-    if (event.nativeEvent.key === 'Enter') {
-      const selectedCategory = filteredCategories.find(category =>
-        category.name.toLowerCase() === searchQuery.toLowerCase()
-      );
-      if (selectedCategory) {
-        navigation.navigate('CategoryScreen', { category: selectedCategory.name }); // Navigate to the category screen
-      }
+    if (index === selectedImages.length) {
+      // If the user scrolls past the last image, reset to the first image
+      setCurrentImageIndex(0);
+      scrollViewRef.current?.scrollTo({ x: 0, animated: false });
+    } else {
+      setCurrentImageIndex(index);
     }
-  };
-
-  const handleSuggestionPress = (categoryName: string) => {
-    navigation.navigate('CategoryScreen', { category: categoryName }); // Navigate to the category screen
   };
 
   return (
@@ -80,11 +84,11 @@ const ExploreHeader = () => {
               alignItems: 'center',
               paddingHorizontal: 16,
             }}>
-            {filteredCategories.map((item, index) => (
+            {categories.map((item, index) => (
               <TouchableOpacity
                 key={index}
                 style={styles.categoriesBtn}
-                onPress={() => showPopup(item.image)}>
+                onPress={() => showPopup(item.images || [item.image])}>
                 <View style={styles.circularIcon}>
                   <MaterialIcons
                     name={item.icon as any}
@@ -103,10 +107,27 @@ const ExploreHeader = () => {
           visible={modalVisible}
           onRequestClose={closeModal}>
           <View style={styles.modalView}>
-            <Image source={{ uri: selectedImage }} style={styles.popupImage} />
-            <Button title="Close" onPress={closeModal} />
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
+              ref={scrollViewRef}
+            >
+              {selectedImages.map((image, index) => (
+                <Image
+                  key={index}
+                  source={{ uri: image }}
+                  style={styles.popupImage}
+                />
+              ))}
+            </ScrollView>
+            
+            <Button  title="Close" onPress={closeModal} color='#1F4E79'    />
+            
           </View>
-        </Modal>
+        </Modal> 
       </View>
     </SafeAreaView>
   );
@@ -114,17 +135,18 @@ const ExploreHeader = () => {
 
 const styles = StyleSheet.create({
   containerss: {
-    backgroundColor: '#fff',
-    height: 80,
+    backgroundColor: '#EAF0F7',
+    height: 100,
     elevation: 2,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 6,
-    marginTop: 60,
+    marginTop: 45,
     shadowOffset: {
       width: 1,
       height: 5,
     },
+    paddingBottom: 10,
   },
   container: {
     backgroundColor: '#fff',
@@ -137,56 +159,30 @@ const styles = StyleSheet.create({
       width: 1,
       height: 10,
     },
-  },
-  actionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingBottom: 16,
-    marginTop: 60,
-  },
-  searchBtn: {
-    backgroundColor: '#fff',
-    flexDirection: 'row',
-    gap: 10,
-    padding: 14,
-    alignItems: 'center',
-    width: 280,
-    height: 50,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#c2c2c2',
-    borderRadius: 30,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    shadowOffset: {
-      width: 1,
-      height: 1,
-    },
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: 10,
-    fontSize: 16,
+    paddingBottom: 10,
   },
   categoriesBtn: {
     alignItems: 'center',
     marginHorizontal: 8,
+    paddingVertical: 10,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
   },
   circularIcon: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: 'purple',
+    backgroundColor: '#1F4E79',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
+    borderColor: '#fff',
+    borderWidth: 2,
   },
   categoryText: {
     fontSize: 14,
     fontFamily: 'mon-sb',
+    color: '#000',
   },
   modalView: {
     flex: 1,
@@ -195,27 +191,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   popupImage: {
-    width: 400,
-    height: 400,
+    width: screenWidth, // Adjust the image size to match the screen width
+    height: '90%',
     borderRadius: 10,
+    resizeMode: 'contain', // Ensure the image fits within the bounds
   },
-  suggestionsList: {
-    position: 'absolute',
-    top: 60, // Adjust based on the height of your search bar
-    left: 24,
-    right: 24,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#c2c2c2',
-    borderRadius: 8,
-    elevation: 2,
-    maxHeight: 200,
-  },
-  suggestionItem: {
-    padding: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#c2c2c2',
-  },
+ 
 });
 
 export default ExploreHeader;

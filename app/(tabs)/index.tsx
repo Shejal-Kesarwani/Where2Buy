@@ -146,12 +146,12 @@ const App = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#EAF0F7',
     marginTop: 215,
   },
   map: {
     width: '100%',
-    height: '50%',
+    height: '45%',
   },
   searchContainer: {
     position: 'absolute',
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   suggestionsContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: '#1F4E79',
     borderRadius: 10,
     marginTop: 5,
   },
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   button: {
     width: '40%',
     aspectRatio: 1,
-    backgroundColor: 'lightblue',
+    backgroundColor: '#1F4E79',
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
@@ -201,10 +201,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   buttonText: {
-    color: 'black',
+    color: 'white',
     fontFamily: 'Roboto',
-    fontSize: 14,
-    fontWeight: 'semibold',
+    fontSize: 16,
+    fontWeight: 'bold',
     textAlign: 'center',
   },
 });

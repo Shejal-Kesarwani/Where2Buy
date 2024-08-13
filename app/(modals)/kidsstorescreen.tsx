@@ -1,57 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { db, auth } from '../(tabs)/firebaseConfig'; 
-import { doc, setDoc, onSnapshot } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
+import { db } from '../(tabs)/firebaseConfig'; // Adjust the path as needed
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 const shoeData = [
- 
   { name: 'Toys ', offers: '30% off sale', category: 'Kids Store', image: { uri: 'https://images.hellomagazine.com/horizon/square/9f9b151047f8-top-toys-2023-best-kids-toys-for-christmas.jpg' } },
-  { name: 'Puzzles', offers: '20% off sale', category: 'Kids Store', image: { uri: 'https://m.media-amazon.com/images/I/71Y77gJgE0L.jpg' } },
-  { name: 'Kids Clothes', offers: '20% off sale', category: 'Kids Store', image: { uri: 'https://i.pinimg.com/originals/df/09/df/df09dfce328a66304b9281c2a7f725a7.jpg' } },
+  { name: 'Puzzles', offers: '50% off sale', category: 'Kids Store', image: { uri: 'https://m.media-amazon.com/images/I/71Y77gJgE0L.jpg' } },
+  { name: 'FirstCry', offers: 'Get2@1 Price', category: 'Kids Store', image: { uri: 'https://pbs.twimg.com/profile_images/1232546599206703104/IdVHvM1q_400x400.jpg' } },
   { name: 'Combo Kit', offers: '10% off sale', category: 'Kids Store', image: { uri: 'https://static.wixstatic.com/media/dc3a49_2283b995e7f147a298861e1b50533dde~mv2.png/v1/fill/w_980,h_980,al_c,q_90,usm_0.66_1.00_0.01,enc_auto/dc3a49_2283b995e7f147a298861e1b50533dde~mv2.png' } },
   { name: 'Kids Footwear', offers: '40% off sale', category: 'Kids Store', image: { uri: 'https://staranddaisy.in/wp-content/uploads/2022/07/foot3019_pink.jpg' } },
-  { name: 'Kids Accessories', offers: '20% off sale', category: 'Kids Store', image: { uri: 'https://images.meesho.com/images/products/254005107/qbntz_512.webp' } },
+  { name: 'Hopscotch', offers: '20% off sale', category: 'Kids Store', image: { uri: 'https://media.licdn.com/dms/image/C4E0BAQHiZwYH_Gc9Lw/company-logo_200_200/0/1631348602816?e=2147483647&v=beta&t=-6iVS7XYigJbwAkXmpKiiqQayvKUZYlMo9c3sd4BqJc' } },
+  { name: 'Hamleys', offers: '15% off sale', category: 'Kids Store', image: { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSgGVSZwfszs9zHO0X7RHud8PIpyY6NYNDAag&s' } },
+  { name: 'Back to school', offers: 'Buy1Get2', category: 'Kids Store', image: { uri: 'https://images.meesho.com/images/products/254005107/qbntz_512.webp' } },
+  { name: 'Giny&Jony', offers: '30% off sale', category: 'Kids Store', image: { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYkkGcXAR7GYFIDIzXNbw6EmNx8H9p1HsHUA&s' } },
+  
 
 ];
 
 const ShoeScreen = () => {
-  const [wishlist, setWishlist] = useState({});
-  const [userId, setUserId] = useState(null);
+  const [wishlist, setWishlist] = useState({}); // Store wishlist as an object with categories
   const navigation = useNavigation();
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUserId(user.uid);
-      } else {
-        setUserId(null);
-      }
-    });
+    const fetchWishlist = async () => {
+      try {
+        const wishlistDoc = doc(db, 'wishlist', 'userWishlist'); // Replace 'userWishlist' with your user identifier if needed
+        const docSnap = await getDoc(wishlistDoc);
 
-    return () => unsubscribeAuth();
+        if (docSnap.exists()) {
+          setWishlist(docSnap.data());
+        }
+      } catch (error) {
+        console.error('Error fetching wishlist: ', error);
+      }
+    };
+
+    fetchWishlist();
   }, []);
 
-  useEffect(() => {
-    if (!userId) return;
-
-    const wishlistDoc = doc(db, 'userWishlists', userId); 
-
-    const unsubscribe = onSnapshot(wishlistDoc, (docSnap) => {
-      if (docSnap.exists()) {
-        setWishlist(docSnap.data() || {});
-      } else {
-        setWishlist({});
-      }
-    });
-
-    return () => unsubscribe();
-  }, [userId]);
-
   const toggleWishlist = async (shoe) => {
-    if (!userId) return;
-
     try {
       setWishlist((prevWishlist) => {
         const category = shoe.category;
@@ -67,8 +55,8 @@ const ShoeScreen = () => {
               [category]: [...itemsInCategory, shoe.name],
             };
 
-      
-        const wishlistDoc = doc(db, 'userWishlists', userId); 
+        // Update Firestore
+        const wishlistDoc = doc(db, 'wishlist', 'userWishlist'); // Replace 'userWishlist' with your user identifier if needed
         setDoc(wishlistDoc, updatedWishlist);
 
         return updatedWishlist;
@@ -121,6 +109,7 @@ const ShoeScreen = () => {
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
@@ -201,7 +190,7 @@ const styles = StyleSheet.create({
 
     color: '#fff',
     fontSize: 20,
-  }
+  },
 });
 
 export default ShoeScreen;
